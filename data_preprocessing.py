@@ -85,15 +85,6 @@ def get_audio(path, type='train'):
 	return np.array(dataset_features), np.array(dataset_labels)
 
 
-
-
-
-
-
-# samplerate, test_sound  = wavfile.read(filepath)
-# _, spectrogram = log_specgram(test_sound, samplerate)
-# plt.imshow(spectrogram.T, aspect='auto', origin='lower')
-
 TRAIN_PATH = 'G:/DL/tf_speech_recognition'
 dataset_train_features, dataset_train_labels = get_audio(TRAIN_PATH, type='train')
 print(dataset_train_features.shape)
