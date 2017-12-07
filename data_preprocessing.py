@@ -28,7 +28,19 @@ def log_specgram(audio, sample_rate, window_size=20, step_size=10, eps=1e-10):
     return freqs, np.log(spec.T.astype(np.float32) + eps)
 
 
-def get_audio(path, type='train'):
+def get_audio_dataset_features_labels(path, type='train'):
+	'''TODO: for type='test' and 'both'
+	
+	Arguments:
+		path {[type]} -- [description]
+	
+	Keyword Arguments:
+		type {str} -- [description] (default: {'train'})
+	
+	Returns:
+		[type] -- [description]
+	'''
+
 	TYPES = ['train', 'test', 'both']
 	if type not in TYPES:
 		print("Argument type should be one of 'train', 'test', 'both'")
@@ -53,6 +65,7 @@ def get_audio(path, type='train'):
 		folders_list.remove('_background_noise_')
 
 		for folder in folders_list:
+			print("In folder", folder)
 			audio_files_list = os.listdir(TRAIN_PATH + os.sep + folder)
 
 			for audio_file in audio_files_list:
@@ -80,11 +93,10 @@ def get_audio(path, type='train'):
 					label[label_index] = 1
 					dataset_labels.append(label)
 
-				break
-
+				# break
 	return np.array(dataset_features), np.array(dataset_labels)
 
 
 TRAIN_PATH = 'G:/DL/tf_speech_recognition'
-dataset_train_features, dataset_train_labels = get_audio(TRAIN_PATH, type='train')
-print(dataset_train_features.shape)
+dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
+print(dataset_train_features.shape, dataset_train_labels.shape)
