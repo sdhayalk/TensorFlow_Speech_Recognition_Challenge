@@ -24,15 +24,18 @@ RNN_SIZE = 128
 x = tf.placeholder(tf.float32, shape=[-1, ])
 y = tf.placeholder(tf.float32, shape=[-1, NUM_CLASSES])
 
-weights = {
-	'w1': tf.Variable(tf.random_normal([128, 256]), dtype=tf.float32),
-	'w2': tf.Variable(tf.random_normal([256, 128]), dtype=tf.float32),
-	'w3': tf.Variable(tf.random_normal([128, NUM_CLASSES]), dtype=tf.float32)
-}
-biases = {
-	'b1': tf.Variable(tf.random_normal([256]), dtype=tf.float32),
-	'b2': tf.Variable(tf.random_normal([128]), dtype=tf.float32),
-	'b3': tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
-}
 def recurrent_neural_network(x):
+	lstm_cell_1 = rnn_cell.BasicLSTMCell(128)
+	lstm_cell_2 = rnn_cell.BasicLSTMCell(192)
+	lstm_cell_3 = rnn_cell.BasicLSTMCell(256)
+	weights_1 = tf.Variable(tf.random_normal([256, NUM_CLASSES]), dtype=tf.float32)
+	biases_1 = tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
+
+	lstm_layer_1, lstm_layer_1_states = rnn.rnn(lstm_cell_1, x, dtype=tf.float32)
+	lstm_layer_2, lstm_layer_2_states = rnn.rnn(lstm_cell_2, lstm_layer_1, dtype=tf.float32)
+	lstm_layer_3, lstm_layer_3_states = rnn.rnn(lstm_cell_3, lstm_layer_2, dtype=tf.float32)
+
+	output = tf.matmul(lstm_layer_3[-1], weights_1) + biases_1
+
+
 
