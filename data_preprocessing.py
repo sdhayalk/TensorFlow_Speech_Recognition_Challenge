@@ -93,7 +93,7 @@ def get_audio_dataset_features_labels(path, type='train'):
 					label[label_index] = 1
 					dataset_labels.append(label)
 
-				# break
+				break
 	return np.array(dataset_features), np.array(dataset_labels)
 
 
