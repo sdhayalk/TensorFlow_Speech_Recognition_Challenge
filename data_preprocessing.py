@@ -97,6 +97,6 @@ def get_audio_dataset_features_labels(path, type='train'):
 	return np.array(dataset_features), np.array(dataset_labels)
 
 
-TRAIN_PATH = 'G:/DL/tf_speech_recognition'
-dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
-print(dataset_train_features.shape, dataset_train_labels.shape)
+# TRAIN_PATH = 'G:/DL/tf_speech_recognition'
+# dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
+# print(dataset_train_features.shape, dataset_train_labels.shape)

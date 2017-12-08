@@ -1,7 +1,8 @@
 import tensorflow as tf
 import numpy as np
 
-from tensorflow.python.ops import rnn, rnn_cell
+# from tensorflow.python.ops import rnn
+from tensorflow.contrib import rnn
 from data_preprocessing import get_audio_dataset_features_labels
 
 def get_batch(dataset, i, BATCH_SIZE):
@@ -27,19 +28,19 @@ NUM_EPOCHS = 100
 BATCH_SIZE = 128
 RNN_SIZE = 128
 
-x = tf.placeholder(tf.float32, shape=[-1, ])
-y = tf.placeholder(tf.float32, shape=[-1, NUM_CLASSES])
+x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
+y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 
 def recurrent_neural_network(x):
-	lstm_cell_1 = rnn_cell.BasicLSTMCell(128)
-	lstm_cell_2 = rnn_cell.BasicLSTMCell(192)
-	lstm_cell_3 = rnn_cell.BasicLSTMCell(256)
+	lstm_cell_1 = rnn.BasicLSTMCell(128)
+	lstm_cell_2 = rnn.BasicLSTMCell(192)
+	lstm_cell_3 = rnn.BasicLSTMCell(256)
 	weights_1 = tf.Variable(tf.random_normal([256, NUM_CLASSES]), dtype=tf.float32)
 	biases_1 = tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
 
-	lstm_layer_1, lstm_layer_1_states = rnn.rnn(lstm_cell_1, x, dtype=tf.float32)
-	lstm_layer_2, lstm_layer_2_states = rnn.rnn(lstm_cell_2, lstm_layer_1, dtype=tf.float32)
-	lstm_layer_3, lstm_layer_3_states = rnn.rnn(lstm_cell_3, lstm_layer_2, dtype=tf.float32)
+	lstm_layer_1, lstm_layer_1_states = rnn.static_rnn(lstm_cell_1, x, dtype=tf.float32)
+	lstm_layer_2, lstm_layer_2_states = rnn.static_rnn(lstm_cell_2, lstm_layer_1, dtype=tf.float32)
+	lstm_layer_3, lstm_layer_3_states = rnn.static_rnn(lstm_cell_3, lstm_layer_2, dtype=tf.float32)
 	output = tf.matmul(lstm_layer_3[-1], weights_1) + biases_1
 
 	return output
@@ -69,7 +70,7 @@ with tf.Session() as sess:
 		y_predicted = tf.nn.softmax(logits)
 		correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
 		accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-		accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels})
+		accuracy_validation = accuracy_function.eval({x:dataset_train_features, y:dataset_train_labels})
 		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 		# training end
 
