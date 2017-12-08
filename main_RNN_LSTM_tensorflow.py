@@ -21,7 +21,18 @@ NUM_EPOCHS = 100
 BATCH_SIZE = 128
 RNN_SIZE = 128
 
-# x = tf.placeholder(tf.float32)
-# y = tf.placeholder(tf.float32)
+x = tf.placeholder(tf.float32, shape=[-1, ])
+y = tf.placeholder(tf.float32, shape=[-1, NUM_CLASSES])
 
-# def recurrent_neural_network(x):
+weights = {
+	'w1': tf.Variable(tf.random_normal([128, 256]), dtype=tf.float32),
+	'w2': tf.Variable(tf.random_normal([256, 128]), dtype=tf.float32),
+	'w3': tf.Variable(tf.random_normal([128, NUM_CLASSES]), dtype=tf.float32)
+}
+biases = {
+	'b1': tf.Variable(tf.random_normal([256]), dtype=tf.float32),
+	'b2': tf.Variable(tf.random_normal([128]), dtype=tf.float32),
+	'b3': tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
+}
+def recurrent_neural_network(x):
+
