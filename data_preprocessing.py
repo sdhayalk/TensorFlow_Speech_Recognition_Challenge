@@ -94,7 +94,7 @@ def get_audio_dataset_features_labels(path, type='train'):
 					dataset_labels.append(label)
 
 				break
-	return np.array(dataset_features), np.array(dataset_labels)
+	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float')
 
 
 # TRAIN_PATH = 'G:/DL/tf_speech_recognition'

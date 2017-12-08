@@ -32,16 +32,24 @@ x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 
 def recurrent_neural_network(x):
-	lstm_cell_1 = rnn.BasicLSTMCell(128)
-	lstm_cell_2 = rnn.BasicLSTMCell(192)
-	lstm_cell_3 = rnn.BasicLSTMCell(256)
+	x = tf.transpose(x, [1,0,2])
+	x = tf.reshape(x, [-1, CHUNK_SIZE])
+	x = tf.split(x, NUM_CHUNKS, 0)
+
+	# lstm_cell_1 = rnn.BasicLSTMCell(128)
+	# lstm_cell_2 = rnn.BasicLSTMCell(192, reuse = tf.get_variable_scope().reuse)
+	# lstm_cell_3 = rnn.BasicLSTMCell(256, reuse = tf.get_variable_scope().reuse)
+
+	lstm_cell_1 = rnn.LSTMCell(128, state_is_tuple=True)
+	lstm_cell_2 = rnn.LSTMCell(192, state_is_tuple=True)
+	lstm_cell_3 = rnn.LSTMCell(256, state_is_tuple=True)
+	multi_lstm_cells = rnn.MultiRNNCell([lstm_cell_1, lstm_cell_2, lstm_cell_3], state_is_tuple=True)
+
 	weights_1 = tf.Variable(tf.random_normal([256, NUM_CLASSES]), dtype=tf.float32)
 	biases_1 = tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
 
-	lstm_layer_1, lstm_layer_1_states = rnn.static_rnn(lstm_cell_1, x, dtype=tf.float32)
-	lstm_layer_2, lstm_layer_2_states = rnn.static_rnn(lstm_cell_2, lstm_layer_1, dtype=tf.float32)
-	lstm_layer_3, lstm_layer_3_states = rnn.static_rnn(lstm_cell_3, lstm_layer_2, dtype=tf.float32)
-	output = tf.matmul(lstm_layer_3[-1], weights_1) + biases_1
+	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(multi_lstm_cells, x, dtype=tf.float32)
+	output = tf.matmul(lstm_layer_1[-1], weights_1) + biases_1
 
 	return output
 
@@ -61,6 +69,7 @@ with tf.Session() as sess:
 			batch_x = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
 			batch_y = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
+			print(batch_x.shape)
 			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
 			total_cost += batch_cost
 
