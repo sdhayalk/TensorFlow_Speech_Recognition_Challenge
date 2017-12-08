@@ -25,33 +25,34 @@ NUM_EXAMPLES = dataset_train_features.shape[0]
 NUM_CHUNKS = dataset_train_features.shape[1]	# 161
 CHUNK_SIZE = dataset_train_features.shape[2]	# 99 
 NUM_EPOCHS = 100
-BATCH_SIZE = 128
-RNN_SIZE = 128
+BATCH_SIZE = 32
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 
 def recurrent_neural_network(x):
-	x = tf.transpose(x, [1,0,2])
-	x = tf.reshape(x, [-1, CHUNK_SIZE])
-	x = tf.split(x, NUM_CHUNKS, 0)
-
-	# lstm_cell_1 = rnn.BasicLSTMCell(128)
-	# lstm_cell_2 = rnn.BasicLSTMCell(192, reuse = tf.get_variable_scope().reuse)
-	# lstm_cell_3 = rnn.BasicLSTMCell(256, reuse = tf.get_variable_scope().reuse)
+	print(x.shape)
+	# x = tf.transpose(x, [1,0,2])
+	# x = tf.reshape(x, [-1, CHUNK_SIZE])
+	# x = tf.split(x, NUM_CHUNKS, 0)
 
 	lstm_cell_1 = rnn.LSTMCell(128, state_is_tuple=True)
 	lstm_cell_2 = rnn.LSTMCell(192, state_is_tuple=True)
 	lstm_cell_3 = rnn.LSTMCell(256, state_is_tuple=True)
 	multi_lstm_cells = rnn.MultiRNNCell([lstm_cell_1, lstm_cell_2, lstm_cell_3], state_is_tuple=True)
 
-	weights_1 = tf.Variable(tf.random_normal([256, NUM_CLASSES]), dtype=tf.float32)
-	biases_1 = tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
-
 	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(multi_lstm_cells, x, dtype=tf.float32)
-	output = tf.matmul(lstm_layer_1[-1], weights_1) + biases_1
+	lstm_layer_1 = tf.reshape(lstm_layer_1, [-1, 161*256])
 
-	return output
+	weights_1 = tf.Variable(tf.random_normal([161*256, 128]), dtype=tf.float32)
+	weights_2 = tf.Variable(tf.random_normal([128, NUM_CLASSES]), dtype=tf.float32)
+	biases_1 = tf.Variable(tf.random_normal([128]), dtype=tf.float32)
+	biases_2 = tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
+
+	fully_connected_1 = tf.matmul(lstm_layer_1, weights_1) + biases_1
+	fully_connected_2 = tf.matmul(fully_connected_1, weights_2) + biases_2
+
+	return fully_connected_2
 
 logits = recurrent_neural_network(x)
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
@@ -69,7 +70,6 @@ with tf.Session() as sess:
 			batch_x = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
 			batch_y = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
-			print(batch_x.shape)
 			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
 			total_cost += batch_cost
 
