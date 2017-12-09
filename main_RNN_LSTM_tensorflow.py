@@ -4,7 +4,7 @@ import random
 
 # from tensorflow.python.ops import rnn
 from tensorflow.contrib import rnn
-from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_features_labels, normalize_training_dataset
+from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_filenames, get_audio_test_dataset_features_labels, normalize_training_dataset, normalize_test_dataset
 
 def shuffle_randomize(dataset_features, dataset_labels):
 	dataset_combined = list(zip(dataset_features, dataset_labels))
@@ -25,15 +25,16 @@ for i in range(0, len(ALLOWED_LABELS)):
 	ALLOWED_LABELS_MAP[str(i)] = ALLOWED_LABELS[i]
 
 dataset_train_features, dataset_train_labels, labels_one_hot_map = get_audio_dataset_features_labels(DATASET_PATH, ALLOWED_LABELS, type='train')
-dataset_test_features, dataset_test_filenames = get_audio_test_dataset_features_labels(DATASET_PATH)
+audio_filenames = get_audio_test_dataset_filenames(DATASET_PATH)
 
 print('dataset_train_features.shape:', dataset_train_features.shape, 'dataset_train_labels.shape:', dataset_train_labels.shape)
-print('dataset_test_features.shape:', dataset_test_features.shape)
 
 # normalize training and testing features dataset
-dataset_train_features, dataset_test_features = normalize_training_dataset(dataset_train_features, dataset_test_features)
+print('Normalizing datasets')
+dataset_train_features, min_value, max_value = normalize_training_dataset(dataset_train_features)
 
 # randomize shuffle
+print('Shuffling training dataset')
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
 
 # divide training set into training and validation
@@ -46,7 +47,7 @@ NUM_CLASSES = len(CLASSES)
 NUM_EXAMPLES = dataset_train_features.shape[0]
 NUM_CHUNKS = dataset_train_features.shape[1]	# 161
 CHUNK_SIZE = dataset_train_features.shape[2]	# 99 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 1
 BATCH_SIZE = 32
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
@@ -105,16 +106,13 @@ with tf.Session() as sess:
 		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 		# training end
 
-		y_predicted = tf.nn.softmax(logits)
-		batch_x = get_batch(dataset_test_features, 0, BATCH_SIZE)
-		y_predicted_labels = sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x})
-		i_= 0
-		for i in range(1, int(dataset_test_features.shape[0]/BATCH_SIZE)):
-			batch_x = get_batch(dataset_test_features, i, BATCH_SIZE)
-			y_predicted_labels = np.concatenate((y_predicted_labels, sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x})), axis=0)
-			i_ = i
-		batch_x = get_batch(dataset_test_features, i_+1, BATCH_SIZE)
-		y_predicted_labels = np.concatenate((y_predicted_labels, sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x})), axis=0)
+		# testing
+		y_predicted_labels = []
+		for audio_file in audio_filenames:
+			datast_test_features = get_audio_test_dataset_features_labels(DATASET_PATH, audio_file)
+			datast_test_features = normalize_test_dataset(datast_test_features, min_value, max_value)
+			y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: datast_test_features}))
+
 		# testing end
 
 		# writing predicted labels into a csv file
