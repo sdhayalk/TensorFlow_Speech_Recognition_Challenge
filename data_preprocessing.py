@@ -111,6 +111,17 @@ def get_audio_test_dataset_features_labels(path):
 		# break
 	return np.array(dataset_features, dtype='float'), dataset_filenames
 
+
+def normalize_training_dataset(dataset_train_features, dataset_test_features):
+	dataset = np.concatenate((dataset_train_features, dataset_test_features), axis=0)
+	min_value = np.amin(dataset)
+	max_value = np.max(dataset)
+
+	dataset_train_features = (dataset_train_features - min_value) / (max_value - min_value)
+	dataset_test_features = (dataset_test_features - min_value) / (max_value - min_value)
+	return dataset_train_features, dataset_test_features
+
+	
 # TRAIN_PATH = 'G:/DL/tf_speech_recognition'
 # dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
 # np.save('dataset_train_features', dataset_train_features)
