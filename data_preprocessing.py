@@ -28,19 +28,7 @@ def log_specgram(audio, sample_rate, window_size=20, step_size=10, eps=1e-10):
     return freqs, np.log(spec.T.astype(np.float32) + eps)
 
 
-def get_audio_dataset_features_labels(path, type='train'):
-	'''TODO: for type='test' and 'both'
-	
-	Arguments:
-		path {[type]} -- [description]
-	
-	Keyword Arguments:
-		type {str} -- [description] (default: {'train'})
-	
-	Returns:
-		[type] -- [description]
-	'''
-
+def get_audio_dataset_features_labels(path, allowed_labels, type='train'):
 	TYPES = ['train', 'test', 'both']
 	if type not in TYPES:
 		print("Argument type should be one of 'train', 'test', 'both'")
@@ -48,8 +36,8 @@ def get_audio_dataset_features_labels(path, type='train'):
 
 	TRAIN_PATH = path + os.sep + 'train' + os.sep + 'audio'
 	TEST_PATH = path + os.sep + 'test'
-	ALLOWED_LABELS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
-	SILENCE_AVERAGE = get_silence_average(TRAIN_PATH)
+	ALLOWED_LABELS = allowed_labels
+	SILENCE_AVERAGE = 0
 	dataset_features = []
 	dataset_labels = []
 
@@ -93,11 +81,37 @@ def get_audio_dataset_features_labels(path, type='train'):
 					label[label_index] = 1
 					dataset_labels.append(label)
 
-				# break
-	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float')
+				break
+	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float'), one_hot_map
 
 
-TRAIN_PATH = 'G:/DL/tf_speech_recognition'
-dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
-np.save('dataset_train_features', dataset_train_features)
-np.save('dataset_train_labels', dataset_train_labels)
+def get_audio_test_dataset_features_labels(path):
+	TEST_PATH = path + os.sep + 'test_small' + os.sep + 'audio'
+	SILENCE_AVERAGE = 0
+	dataset_features = []
+	dataset_filenames = []
+
+	audio_files_list = os.listdir(TEST_PATH)
+
+	for audio_file in audio_files_list:
+		audio_file_path = TEST_PATH + os.sep + audio_file
+		samplerate, test_sound  = wavfile.read(audio_file_path)
+		
+		if len(test_sound) < 16000:
+			diff = 16000 - len(test_sound)
+			while(diff > 0):
+				test_sound = np.insert(test_sound, 1, 0)
+				diff -= 1
+		# print(len(test_sound))
+
+		_, spectrogram = log_specgram(test_sound, samplerate)
+		dataset_features.append(spectrogram.T)
+		dataset_filenames.append(audio_file)
+
+		# break
+	return np.array(dataset_features, dtype='float'), dataset_filenames
+
+# TRAIN_PATH = 'G:/DL/tf_speech_recognition'
+# dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
+# np.save('dataset_train_features', dataset_train_features)
+# np.save('dataset_train_labels', dataset_train_labels)

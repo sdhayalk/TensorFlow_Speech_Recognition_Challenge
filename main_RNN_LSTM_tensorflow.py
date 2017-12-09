@@ -1,13 +1,14 @@
 import tensorflow as tf
 import numpy as np
+import random
 
 # from tensorflow.python.ops import rnn
 from tensorflow.contrib import rnn
-from data_preprocessing import get_audio_dataset_features_labels
+from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_features_labels
 
 def shuffle_randomize(dataset_features, dataset_labels):
 	dataset_combined = list(zip(dataset_features, dataset_labels))
-	random.shuffle(combined)
+	random.shuffle(dataset_combined)
 	dataset_features[:], dataset_labels[:] = zip(*dataset_combined)
 	return dataset_features, dataset_labels
 
@@ -18,21 +19,24 @@ def get_batch(dataset, i, BATCH_SIZE):
 
 
 DATASET_PATH = 'G:/DL/tf_speech_recognition'
+ALLOWED_LABELS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
+ALLOWED_LABELS_MAP = {}
+for i in range(0, len(ALLOWED_LABELS)):
+	ALLOWED_LABELS_MAP[str(i)] = ALLOWED_LABELS[i]
 
-# dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(DATASET_PATH, type='train')
-# dataset_test_features, dataset_test_labels = get_audio_dataset_features_labels(DATASET_PATH, type='test')
-dataset_train_features = np.load('dataset_train_features')
-dataset_train_labels = np.load('dataset_train_labels')
+dataset_train_features, dataset_train_labels, labels_one_hot_map = get_audio_dataset_features_labels(DATASET_PATH, ALLOWED_LABELS, type='train')
+dataset_test_features, dataset_test_filenames = get_audio_test_dataset_features_labels(DATASET_PATH)
 
 print('dataset_train_features.shape:', dataset_train_features.shape, 'dataset_train_labels.shape:', dataset_train_labels.shape)
+print('dataset_test_features.shape:', dataset_test_features.shape)
 
 # randomize shuffle
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
-# dataset_test_features, dataset_test_labels = shuffle_randomize(dataset_test_features, dataset_test_labels)
 
 # divide training set into training and validation
 dataset_validation_features, dataset_validation_labels = dataset_train_features[57000:dataset_train_features.shape[0], :], dataset_train_labels[57000:dataset_train_labels.shape[0], :]
 dataset_train_features, dataset_train_labels = dataset_train_features[0:57000, :], dataset_train_labels[0:57000, :]
+print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
 
 CLASSES = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 NUM_CLASSES = len(CLASSES)
@@ -97,6 +101,31 @@ with tf.Session() as sess:
 		accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels})
 		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 		# training end
+
+		y_predicted = tf.nn.softmax(logits)
+		batch_x = get_batch(dataset_test_features, 0, BATCH_SIZE)
+		y_predicted_labels = sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x})
+		i_= 0
+		for i in range(1, int(dataset_test_features.shape[0]/BATCH_SIZE)):
+			batch_x = get_batch(dataset_test_features, i, BATCH_SIZE)
+			y_predicted_labels = np.concatenate((y_predicted_labels, sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x})), axis=0)
+			i_ = i
+		batch_x = get_batch(dataset_test_features, i_+1, BATCH_SIZE)
+		y_predicted_labels = np.concatenate((y_predicted_labels, sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x})), axis=0)
+		# testing end
+
+		# writing predicted labels into a csv file
+		y_predicted_labels = np.array(y_predicted_labels)
+		with open('run'+str(epoch)+'.csv','w') as file:	
+			file.write('fname,label')
+			file.write('\n')
+
+			for i in range(0, y_predicted_labels.shape[0]):
+				file.write(str(dataset_test_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+				file.write('\n')
+
+		
+
 
 
 
