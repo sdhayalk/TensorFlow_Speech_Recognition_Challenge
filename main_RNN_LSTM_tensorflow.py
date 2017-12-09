@@ -47,7 +47,7 @@ NUM_CLASSES = len(CLASSES)
 NUM_EXAMPLES = dataset_train_features.shape[0]
 NUM_CHUNKS = dataset_train_features.shape[1]	# 161
 CHUNK_SIZE = dataset_train_features.shape[2]	# 99 
-NUM_EPOCHS = 1
+NUM_EPOCHS = 100
 BATCH_SIZE = 32
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
@@ -122,7 +122,7 @@ with tf.Session() as sess:
 			file.write('\n')
 
 			for i in range(0, y_predicted_labels.shape[0]):
-				file.write(str(dataset_test_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+				file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
 				file.write('\n')
 
 		

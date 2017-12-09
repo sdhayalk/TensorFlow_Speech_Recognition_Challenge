@@ -79,11 +79,11 @@ def get_audio_dataset_features_labels(path, allowed_labels, type='train'):
 					label[label_index] = 1
 					dataset_labels.append(label)
 
-				break
+				# break
 	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float'), one_hot_map
 
 def get_audio_test_dataset_filenames(path):
-	TEST_PATH = path + os.sep + 'test_small' + os.sep + 'audio'
+	TEST_PATH = path + os.sep + 'test' + os.sep + 'audio'
 	dataset_filenames = []
 
 	audio_files_list = os.listdir(TEST_PATH)
@@ -105,12 +105,10 @@ def get_audio_test_dataset_features_labels(path, audio_file):
 		while(diff > 0):
 			test_sound = np.insert(test_sound, 1, 0)
 			diff -= 1
-	# print(len(test_sound))
 
 	_, spectrogram = log_specgram(test_sound, samplerate)
 	dataset_features.append(spectrogram.T)
 
-		# break
 	return np.array(dataset_features, dtype='float')
 
 def normalize_training_dataset(dataset_train_features):
