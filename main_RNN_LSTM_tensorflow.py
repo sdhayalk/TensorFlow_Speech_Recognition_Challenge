@@ -19,8 +19,10 @@ def get_batch(dataset, i, BATCH_SIZE):
 
 DATASET_PATH = 'G:/DL/tf_speech_recognition'
 
-dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(DATASET_PATH, type='train')
+# dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(DATASET_PATH, type='train')
 # dataset_test_features, dataset_test_labels = get_audio_dataset_features_labels(DATASET_PATH, type='test')
+dataset_train_features = np.load('dataset_train_features')
+dataset_train_labels = np.load('dataset_train_labels')
 
 print('dataset_train_features.shape:', dataset_train_features.shape, 'dataset_train_labels.shape:', dataset_train_labels.shape)
 

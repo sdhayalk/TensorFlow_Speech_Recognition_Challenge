@@ -93,10 +93,11 @@ def get_audio_dataset_features_labels(path, type='train'):
 					label[label_index] = 1
 					dataset_labels.append(label)
 
-				break
+				# break
 	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float')
 
 
-# TRAIN_PATH = 'G:/DL/tf_speech_recognition'
-# dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
-# print(dataset_train_features.shape, dataset_train_labels.shape)
+TRAIN_PATH = 'G:/DL/tf_speech_recognition'
+dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
+np.save('dataset_train_features', dataset_train_features)
+np.save('dataset_train_labels', dataset_train_labels)
