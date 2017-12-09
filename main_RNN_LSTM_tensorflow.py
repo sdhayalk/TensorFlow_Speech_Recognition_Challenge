@@ -56,14 +56,14 @@ def recurrent_neural_network(x):
 	# x = tf.split(x, NUM_CHUNKS, 0)
 
 	lstm_cell_1 = rnn.LSTMCell(128, state_is_tuple=True)
-	lstm_cell_2 = rnn.LSTMCell(192, state_is_tuple=True)
-	lstm_cell_3 = rnn.LSTMCell(256, state_is_tuple=True)
+	lstm_cell_2 = rnn.LSTMCell(256, state_is_tuple=True)
+	lstm_cell_3 = rnn.LSTMCell(384, state_is_tuple=True)
 	multi_lstm_cells = rnn.MultiRNNCell([lstm_cell_1, lstm_cell_2, lstm_cell_3], state_is_tuple=True)
 
 	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(multi_lstm_cells, x, dtype=tf.float32)
-	lstm_layer_1 = tf.reshape(lstm_layer_1, [-1, 161*256])
+	lstm_layer_1 = tf.reshape(lstm_layer_1, [-1, 161*384])
 
-	weights_1 = tf.Variable(tf.random_normal([161*256, 128]), dtype=tf.float32)
+	weights_1 = tf.Variable(tf.random_normal([161*384, 128]), dtype=tf.float32)
 	weights_2 = tf.Variable(tf.random_normal([128, NUM_CLASSES]), dtype=tf.float32)
 	biases_1 = tf.Variable(tf.random_normal([128]), dtype=tf.float32)
 	biases_2 = tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
