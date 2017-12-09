@@ -6,6 +6,12 @@ import random
 from tensorflow.contrib import rnn
 from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_features_labels
 
+def normalize_training_dataset(dataset_features):
+	min_value = min(dataset_features)
+	max_value = max(dataset_features)
+	dataset_features = (dataset_features - min_value) / (max_value - min_value)
+	return dataset_features, min_value, max_value 
+
 def shuffle_randomize(dataset_features, dataset_labels):
 	dataset_combined = list(zip(dataset_features, dataset_labels))
 	random.shuffle(dataset_combined)
@@ -29,6 +35,9 @@ dataset_test_features, dataset_test_filenames = get_audio_test_dataset_features_
 
 print('dataset_train_features.shape:', dataset_train_features.shape, 'dataset_train_labels.shape:', dataset_train_labels.shape)
 print('dataset_test_features.shape:', dataset_test_features.shape)
+
+# normalize
+dataset_train_features, min_value, max_value = normalize_training_dataset(dataset_train_features)
 
 # randomize shuffle
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
