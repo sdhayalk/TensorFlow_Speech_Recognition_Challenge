@@ -5,6 +5,12 @@ import numpy as np
 from tensorflow.contrib import rnn
 from data_preprocessing import get_audio_dataset_features_labels
 
+def shuffle_randomize(dataset_features, dataset_labels):
+	dataset_combined = list(zip(dataset_features, dataset_labels))
+	random.shuffle(combined)
+	dataset_features[:], dataset_labels[:] = zip(*dataset_combined)
+	return dataset_features, dataset_labels
+
 def get_batch(dataset, i, BATCH_SIZE):
 	if i*BATCH_SIZE+BATCH_SIZE > dataset.shape[0]:
 		return dataset[i*BATCH_SIZE:, :]
@@ -18,6 +24,13 @@ dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels
 
 print('dataset_train_features.shape:', dataset_train_features.shape, 'dataset_train_labels.shape:', dataset_train_labels.shape)
 
+# randomize shuffle
+dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
+# dataset_test_features, dataset_test_labels = shuffle_randomize(dataset_test_features, dataset_test_labels)
+
+# divide training set into training and validation
+dataset_validation_features, dataset_validation_labels = dataset_train_features[57000:dataset_train_features.shape[0], :], dataset_train_labels[57000:dataset_train_labels.shape[0], :]
+dataset_train_features, dataset_train_labels = dataset_train_features[0:57000, :], dataset_train_labels[0:57000, :]
 
 CLASSES = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 NUM_CLASSES = len(CLASSES)
@@ -79,7 +92,7 @@ with tf.Session() as sess:
 		y_predicted = tf.nn.softmax(logits)
 		correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
 		accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-		accuracy_validation = accuracy_function.eval({x:dataset_train_features, y:dataset_train_labels})
+		accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels})
 		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 		# training end
 
