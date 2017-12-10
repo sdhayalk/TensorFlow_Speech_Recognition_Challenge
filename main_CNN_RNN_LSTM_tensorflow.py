@@ -81,18 +81,16 @@ def recurrent_neural_network(x):
 	lstm_cell_1_1 = rnn.LSTMCell(128, state_is_tuple=True)
 	lstm_layer_1_1, lstm_layer_1_1_states = tf.nn.dynamic_rnn(lstm_cell_1_1, x, dtype=tf.float32)
 
-	x = tf.reshape(x, [-1, 1, tf.shape(x)[-2], tf.shape(x)[-1]])
-	print(tf.shape(x))
+	x = tf.reshape(x, [-1, tf.shape(x)[-2], tf.shape(x)[-1], 1])
 	conv1 = tf.nn.conv2d(x, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
 	conv1 = leakyrelu(conv1)
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
-	print(tf.shape(conv1))
 
-	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=1)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
-	conv1_split1 = tf.reshape(conv1_split1, [-1, tf.shape(conv1_split1)[-2], tf.shape(conv1_split1)[-1]])
-	conv1_split2 = tf.reshape(conv1_split2, [-1, tf.shape(conv1_split2)[-2], tf.shape(conv1_split2)[-1]])
-	conv1_split3 = tf.reshape(conv1_split3, [-1, tf.shape(conv1_split3)[-2], tf.shape(conv1_split3)[-1]])
-	conv1_split4 = tf.reshape(conv1_split4, [-1, tf.shape(conv1_split4)[-2], tf.shape(conv1_split4)[-1]])
+	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=3)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
+	conv1_split1 = tf.reshape(conv1_split1, [tf.shape(conv1_split1)[0], tf.shape(conv1_split1)[-3], (tf.shape(conv1_split1)[-2])*4])
+	conv1_split2 = tf.reshape(conv1_split2, [tf.shape(conv1_split2)[0], tf.shape(conv1_split2)[-3], (tf.shape(conv1_split2)[-2])*4])
+	conv1_split3 = tf.reshape(conv1_split3, [tf.shape(conv1_split3)[0], tf.shape(conv1_split3)[-3], (tf.shape(conv1_split3)[-2])*4])
+	conv1_split4 = tf.reshape(conv1_split4, [tf.shape(conv1_split4)[0], tf.shape(conv1_split4)[-3], (tf.shape(conv1_split4)[-2])*4])
 
 	lstm_cell_2_1 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_2 = rnn.LSTMCell(32, state_is_tuple=True)
