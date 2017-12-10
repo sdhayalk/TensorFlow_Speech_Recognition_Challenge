@@ -87,7 +87,7 @@ def recurrent_neural_network(x):
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=3)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
-	conv1_split1 = tf.reshape(conv1_split1, [tf.shape(conv1_split1)[0], tf.shape(conv1_split1)[-3], (tf.shape(conv1_split1)[-2])*4])
+	conv1_split1 = tf.reshape(conv1_split1, [BATCH_SIZE, 81, 50*4])
 	conv1_split2 = tf.reshape(conv1_split2, [tf.shape(conv1_split2)[0], tf.shape(conv1_split2)[-3], (tf.shape(conv1_split2)[-2])*4])
 	conv1_split3 = tf.reshape(conv1_split3, [tf.shape(conv1_split3)[0], tf.shape(conv1_split3)[-3], (tf.shape(conv1_split3)[-2])*4])
 	conv1_split4 = tf.reshape(conv1_split4, [tf.shape(conv1_split4)[0], tf.shape(conv1_split4)[-3], (tf.shape(conv1_split4)[-2])*4])
