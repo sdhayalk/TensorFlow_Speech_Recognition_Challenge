@@ -53,18 +53,34 @@ BATCH_SIZE = 32
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 
+weights = {
+	'w_conv1': get_variable('w_conv1', shape=[3,3,1,32], dtype=tf.float32)
+	'w_conv2': get_variable('w_conv2', shape=[3,3,32,64], dtype=tf.float32)
+	'w_conv3': get_variable('w_conv3', shape=[3,3,64,128], dtype=tf.float32)
+}
+biases = {
+	'b_conv1': get_variable('b_conv1', shape=[32], dtype=tf.float32)
+	'b_conv2': get_variable('b_conv2', shape=[64], dtype=tf.float32)
+	'b_conv3': get_variable('b_conv3', shape=[128], dtype=tf.float32)
+}
+
+def leakyrelu(x):
+  return tf.nn.relu(x) - 0.2*tf.nn.relu(-x)
+
 def recurrent_neural_network(x):
-	print(x.shape)
-	# x = tf.transpose(x, [1,0,2])
-	# x = tf.reshape(x, [-1, CHUNK_SIZE])
-	# x = tf.split(x, NUM_CHUNKS, 0)
 
 	lstm_cell_1 = rnn.LSTMCell(128, state_is_tuple=True)
-	lstm_cell_2 = rnn.LSTMCell(256, state_is_tuple=True)
-	lstm_cell_3 = rnn.LSTMCell(384, state_is_tuple=True)
-	multi_lstm_cells = rnn.MultiRNNCell([lstm_cell_1, lstm_cell_2, lstm_cell_3], state_is_tuple=True)
+	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(lstm_cell_1, x, dtype=tf.float32)
 
-	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(multi_lstm_cells, x, dtype=tf.float32)
+	conv1 = tf.nn.conv2d(input, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
+	conv1 = leakyrelu(conv1)
+	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+
+	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=1)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
+	
+
+
+
 	lstm_layer_1 = tf.reshape(lstm_layer_1, [-1, 161*384])
 
 	weights_1 = tf.Variable(tf.random_normal([161*384, 128]), dtype=tf.float32)
