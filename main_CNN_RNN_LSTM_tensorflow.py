@@ -86,7 +86,10 @@ def recurrent_neural_network(x):
 	lstm_cell_2_2 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_3 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_4 = rnn.LSTMCell(32, state_is_tuple=True)
-	lstm_layer_2, lstm_layer_2_states = tf.nn.dynamic_rnn([lstm_cell_2_1, lstm_cell_2_2, lstm_cell_2_3, lstm_cell_2_4], x, dtype=tf.float32)
+	lstm_layer_2_1, lstm_layer_2_1_states = tf.nn.dynamic_rnn(lstm_cell_2_1, conv1_split1, dtype=tf.float32)
+	lstm_layer_2_2, lstm_layer_2_2_states = tf.nn.dynamic_rnn(lstm_cell_2_2, conv1_split2, dtype=tf.float32)
+	lstm_layer_2_3, lstm_layer_2_3_states = tf.nn.dynamic_rnn(lstm_cell_2_3, conv1_split3, dtype=tf.float32)
+	lstm_layer_2_4, lstm_layer_2_4_states = tf.nn.dynamic_rnn(lstm_cell_2_4, conv1_split4, dtype=tf.float32)
 
 
 	conv2 = tf.nn.conv2d(conv1, weights['w_conv2'], strides=[1,1,1,1], padding='SAME') + biases['b_conv2']
@@ -102,6 +105,8 @@ def recurrent_neural_network(x):
 	conv2_split6 = tf.reshape(conv2_split6, [-1, tf.shape(conv2_split6)[-2], tf.shape(conv2_split6)[-1]])
 	conv2_split7 = tf.reshape(conv2_split7, [-1, tf.shape(conv2_split7)[-2], tf.shape(conv2_split7)[-1]])
 	conv2_split8 = tf.reshape(conv2_split8, [-1, tf.shape(conv2_split8)[-2], tf.shape(conv2_split8)[-1]])
+
+
 
 
 
