@@ -39,8 +39,8 @@ print('Shuffling training dataset')
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
 
 # divide training set into training and validation
-dataset_validation_features, dataset_validation_labels = dataset_train_features[57000:dataset_train_features.shape[0], :], dataset_train_labels[57000:dataset_train_labels.shape[0], :]
-dataset_train_features, dataset_train_labels = dataset_train_features[0:57000, :], dataset_train_labels[0:57000, :]
+dataset_validation_features, dataset_validation_labels = dataset_train_features[15:dataset_train_features.shape[0], :], dataset_train_labels[15:dataset_train_labels.shape[0], :]
+dataset_train_features, dataset_train_labels = dataset_train_features[0:15, :], dataset_train_labels[0:15, :]
 print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
 
 CLASSES = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
@@ -55,14 +55,14 @@ x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 
 weights = {
-	'w_conv1': get_variable('w_conv1', shape=[3,3,1,32], dtype=tf.float32)
-	'w_conv2': get_variable('w_conv2', shape=[3,3,32,64], dtype=tf.float32)
-	'w_conv3': get_variable('w_conv3', shape=[3,3,64,96], dtype=tf.float32)
+	'w_conv1': tf.get_variable('w_conv1', shape=[3,3,1,32], dtype=tf.float32),
+	'w_conv2': tf.get_variable('w_conv2', shape=[3,3,32,64], dtype=tf.float32),
+	'w_conv3': tf.get_variable('w_conv3', shape=[3,3,64,96], dtype=tf.float32)
 }
 biases = {
-	'b_conv1': get_variable('b_conv1', shape=[32], dtype=tf.float32)
-	'b_conv2': get_variable('b_conv2', shape=[64], dtype=tf.float32)
-	'b_conv3': get_variable('b_conv3', shape=[96], dtype=tf.float32)
+	'b_conv1': tf.get_variable('b_conv1', shape=[32], dtype=tf.float32),
+	'b_conv2': tf.get_variable('b_conv2', shape=[64], dtype=tf.float32),
+	'b_conv3': tf.get_variable('b_conv3', shape=[96], dtype=tf.float32)
 }
 
 def leakyrelu(x):
@@ -81,9 +81,12 @@ def recurrent_neural_network(x):
 	lstm_cell_1_1 = rnn.LSTMCell(128, state_is_tuple=True)
 	lstm_layer_1_1, lstm_layer_1_1_states = tf.nn.dynamic_rnn(lstm_cell_1_1, x, dtype=tf.float32)
 
-	conv1 = tf.nn.conv2d(input, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
+	x = tf.reshape(x, [-1, 1, tf.shape(x)[-2], tf.shape(x)[-1]])
+	print(tf.shape(x))
+	conv1 = tf.nn.conv2d(x, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
 	conv1 = leakyrelu(conv1)
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+	print(tf.shape(conv1))
 
 	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=1)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
 	conv1_split1 = tf.reshape(conv1_split1, [-1, tf.shape(conv1_split1)[-2], tf.shape(conv1_split1)[-1]])
@@ -140,10 +143,12 @@ def recurrent_neural_network(x):
 	merged = flatten_and_merge(list_to_be_flattened_and_merged)
 
 
-	w_fc1 = get_variable('w_fc1', shape=[num_features,128], dtype=tf.float32)
-	w_fc2 = get_variable('w_fc2', shape=[128, NUM_CLASSES], dtype=tf.float32)
-	b_fc1 = get_variable('b_fc1', shape=[128], dtype=tf.float32)
-	b_fc2 = get_variable('b_fc2', shape=[NUM_CLASSES], dtype=tf.float32)
+	# fully connected layers
+	num_features = 500
+	w_fc1 = tf.get_variable('w_fc1', shape=[num_features,128], dtype=tf.float32)
+	w_fc2 = tf.get_variable('w_fc2', shape=[128, NUM_CLASSES], dtype=tf.float32)
+	b_fc1 = tf.get_variable('b_fc1', shape=[128], dtype=tf.float32)
+	b_fc2 = tf.get_variable('b_fc2', shape=[NUM_CLASSES], dtype=tf.float32)
 
 	fully_connected_1 = tf.matmul(merged, w_fc1) + b_fc1
 	fully_connected_2 = tf.matmul(fully_connected_1, w_fc2) + b_fc2
