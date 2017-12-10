@@ -69,15 +69,39 @@ def leakyrelu(x):
 
 def recurrent_neural_network(x):
 
-	lstm_cell_1 = rnn.LSTMCell(128, state_is_tuple=True)
-	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(lstm_cell_1, x, dtype=tf.float32)
+	lstm_cell_1_1 = rnn.LSTMCell(128, state_is_tuple=True)
+	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(lstm_cell_1_1, x, dtype=tf.float32)
 
 	conv1 = tf.nn.conv2d(input, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
 	conv1 = leakyrelu(conv1)
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=1)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
-	
+	conv1_split1 = tf.reshape(conv1_split1, [-1, tf.shape(conv1_split1)[-2], tf.shape(conv1_split1)[-1]])
+	conv1_split2 = tf.reshape(conv1_split2, [-1, tf.shape(conv1_split2)[-2], tf.shape(conv1_split2)[-1]])
+	conv1_split3 = tf.reshape(conv1_split3, [-1, tf.shape(conv1_split3)[-2], tf.shape(conv1_split3)[-1]])
+	conv1_split4 = tf.reshape(conv1_split4, [-1, tf.shape(conv1_split4)[-2], tf.shape(conv1_split4)[-1]])
+
+	lstm_cell_2_1 = rnn.LSTMCell(32, state_is_tuple=True)
+	lstm_cell_2_2 = rnn.LSTMCell(32, state_is_tuple=True)
+	lstm_cell_2_3 = rnn.LSTMCell(32, state_is_tuple=True)
+	lstm_cell_2_4 = rnn.LSTMCell(32, state_is_tuple=True)
+	lstm_layer_2, lstm_layer_2_states = tf.nn.dynamic_rnn([lstm_cell_2_1, lstm_cell_2_2, lstm_cell_2_3, lstm_cell_2_4], x, dtype=tf.float32)
+
+
+	conv2 = tf.nn.conv2d(conv1, weights['w_conv2'], strides=[1,1,1,1], padding='SAME') + biases['b_conv2']
+	conv2 = leakyrelu(conv2)
+	conv2 = tf.nn.max_pool(conv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+
+	conv2_split1, conv2_split2, conv2_split3, conv2_split4 = tf.split(conv2, num_or_size_splits=8, axis=1)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
+	conv2_split1 = tf.reshape(conv2_split1, [-1, tf.shape(conv2_split1)[-2], tf.shape(conv2_split1)[-1]])
+	conv2_split2 = tf.reshape(conv2_split2, [-1, tf.shape(conv2_split2)[-2], tf.shape(conv2_split2)[-1]])
+	conv2_split3 = tf.reshape(conv2_split3, [-1, tf.shape(conv2_split3)[-2], tf.shape(conv2_split3)[-1]])
+	conv2_split4 = tf.reshape(conv2_split4, [-1, tf.shape(conv2_split4)[-2], tf.shape(conv2_split4)[-1]])
+	conv2_split5 = tf.reshape(conv2_split5, [-1, tf.shape(conv2_split5)[-2], tf.shape(conv2_split5)[-1]])
+	conv2_split6 = tf.reshape(conv2_split6, [-1, tf.shape(conv2_split6)[-2], tf.shape(conv2_split6)[-1]])
+	conv2_split7 = tf.reshape(conv2_split7, [-1, tf.shape(conv2_split7)[-2], tf.shape(conv2_split7)[-1]])
+	conv2_split8 = tf.reshape(conv2_split8, [-1, tf.shape(conv2_split8)[-2], tf.shape(conv2_split8)[-1]])
 
 
 
