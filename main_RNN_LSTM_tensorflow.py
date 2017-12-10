@@ -108,10 +108,18 @@ with tf.Session() as sess:
 
 		# testing
 		y_predicted_labels = []
+		audio_files_list = []
+		dataset_test_features = []
+
 		for audio_file in audio_filenames:
-			datast_test_features = get_audio_test_dataset_features_labels(DATASET_PATH, audio_file)
-			datast_test_features = normalize_test_dataset(datast_test_features, min_value, max_value)
-			y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: datast_test_features}))
+			audio_files_list.append(audio_file)
+			dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
+
+			if len(audio_files_list) > 10000:
+				audio_files_list = []
+				dataset_test_features = np.array(dataset_test_features)
+				dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
+				y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
 
 		# testing end
 

@@ -95,7 +95,6 @@ def get_audio_test_dataset_filenames(path):
 def get_audio_test_dataset_features_labels(path, audio_file):
 	TEST_PATH = path + os.sep + 'test' + os.sep + 'audio'
 	SILENCE_AVERAGE = 0
-	dataset_features = []
 
 	audio_file_path = TEST_PATH + os.sep + audio_file
 	samplerate, test_sound  = wavfile.read(audio_file_path)
@@ -107,7 +106,7 @@ def get_audio_test_dataset_features_labels(path, audio_file):
 			diff -= 1
 
 	_, spectrogram = log_specgram(test_sound, samplerate)
-	dataset_features.append(spectrogram.T)
+	return spectrogram.T
 
 	return np.array(dataset_features, dtype='float')
 
