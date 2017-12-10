@@ -56,12 +56,12 @@ y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 weights = {
 	'w_conv1': get_variable('w_conv1', shape=[3,3,1,32], dtype=tf.float32)
 	'w_conv2': get_variable('w_conv2', shape=[3,3,32,64], dtype=tf.float32)
-	'w_conv3': get_variable('w_conv3', shape=[3,3,64,128], dtype=tf.float32)
+	'w_conv3': get_variable('w_conv3', shape=[3,3,64,96], dtype=tf.float32)
 }
 biases = {
 	'b_conv1': get_variable('b_conv1', shape=[32], dtype=tf.float32)
 	'b_conv2': get_variable('b_conv2', shape=[64], dtype=tf.float32)
-	'b_conv3': get_variable('b_conv3', shape=[128], dtype=tf.float32)
+	'b_conv3': get_variable('b_conv3', shape=[96], dtype=tf.float32)
 }
 
 def leakyrelu(x):
@@ -96,7 +96,7 @@ def recurrent_neural_network(x):
 	conv2 = leakyrelu(conv2)
 	conv2 = tf.nn.max_pool(conv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-	conv2_split1, conv2_split2, conv2_split3, conv2_split4 = tf.split(conv2, num_or_size_splits=8, axis=1)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
+	conv2_split1, conv2_split2, conv2_split3, conv2_split4, conv2_split5, conv2_split6, conv2_split7, conv2_split8 = tf.split(conv2, num_or_size_splits=8, axis=1)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
 	conv2_split1 = tf.reshape(conv2_split1, [-1, tf.shape(conv2_split1)[-2], tf.shape(conv2_split1)[-1]])
 	conv2_split2 = tf.reshape(conv2_split2, [-1, tf.shape(conv2_split2)[-2], tf.shape(conv2_split2)[-1]])
 	conv2_split3 = tf.reshape(conv2_split3, [-1, tf.shape(conv2_split3)[-2], tf.shape(conv2_split3)[-1]])
@@ -105,6 +105,29 @@ def recurrent_neural_network(x):
 	conv2_split6 = tf.reshape(conv2_split6, [-1, tf.shape(conv2_split6)[-2], tf.shape(conv2_split6)[-1]])
 	conv2_split7 = tf.reshape(conv2_split7, [-1, tf.shape(conv2_split7)[-2], tf.shape(conv2_split7)[-1]])
 	conv2_split8 = tf.reshape(conv2_split8, [-1, tf.shape(conv2_split8)[-2], tf.shape(conv2_split8)[-1]])
+
+	lstm_cell_3_1 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_cell_3_2 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_cell_3_3 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_cell_3_4 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_cell_3_5 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_cell_3_6 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_cell_3_7 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_cell_3_8 = rnn.LSTMCell(16, state_is_tuple=True)
+	lstm_layer_3_1, lstm_layer_3_1_states = tf.nn.dynamic_rnn(lstm_cell_3_1, conv2_split1, dtype=tf.float32)
+	lstm_layer_3_2, lstm_layer_3_2_states = tf.nn.dynamic_rnn(lstm_cell_3_2, conv2_split2, dtype=tf.float32)
+	lstm_layer_3_3, lstm_layer_3_3_states = tf.nn.dynamic_rnn(lstm_cell_3_3, conv2_split3, dtype=tf.float32)
+	lstm_layer_3_4, lstm_layer_3_4_states = tf.nn.dynamic_rnn(lstm_cell_3_4, conv2_split4, dtype=tf.float32)
+	lstm_layer_3_5, lstm_layer_3_5_states = tf.nn.dynamic_rnn(lstm_cell_3_5, conv2_split5, dtype=tf.float32)
+	lstm_layer_3_6, lstm_layer_3_6_states = tf.nn.dynamic_rnn(lstm_cell_3_6, conv2_split6, dtype=tf.float32)
+	lstm_layer_3_7, lstm_layer_3_7_states = tf.nn.dynamic_rnn(lstm_cell_3_7, conv2_split7, dtype=tf.float32)
+	lstm_layer_3_8, lstm_layer_3_8_states = tf.nn.dynamic_rnn(lstm_cell_3_8, conv2_split8, dtype=tf.float32)
+
+	conv3 = tf.nn.conv2d(conv2, weights['w_conv3'], strides=[1,1,1,1], padding='SAME') + biases['b_conv3']
+	conv3 = leakyrelu(conv3)
+	conv3 = tf.nn.max_pool(conv3, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+
+
 
 
 
