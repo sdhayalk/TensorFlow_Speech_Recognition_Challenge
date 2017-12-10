@@ -4,6 +4,7 @@ import random
 
 # from tensorflow.python.ops import rnn
 from tensorflow.contrib import rnn
+from keras.layers import merge
 from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_filenames, get_audio_test_dataset_features_labels, normalize_training_dataset, normalize_test_dataset
 
 def shuffle_randomize(dataset_features, dataset_labels):
@@ -65,12 +66,20 @@ biases = {
 }
 
 def leakyrelu(x):
-  return tf.nn.relu(x) - 0.2*tf.nn.relu(-x)
+	return tf.nn.relu(x) - 0.2*tf.nn.relu(-x)
+
+def flatten_and_merge(list_to_be_flattened_and_merged):
+	flattened_list = []
+	for tensor in list_to_be_flattened_and_merged:
+		flattened_list.append(tf.contrib.layers.flatten(tensor))
+
+	merged = merge(flattened_list, mode='concat')
+	return merged
 
 def recurrent_neural_network(x):
 
 	lstm_cell_1_1 = rnn.LSTMCell(128, state_is_tuple=True)
-	lstm_layer_1, lstm_layer_1_states = tf.nn.dynamic_rnn(lstm_cell_1_1, x, dtype=tf.float32)
+	lstm_layer_1_1, lstm_layer_1_1_states = tf.nn.dynamic_rnn(lstm_cell_1_1, x, dtype=tf.float32)
 
 	conv1 = tf.nn.conv2d(input, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
 	conv1 = leakyrelu(conv1)
@@ -127,21 +136,17 @@ def recurrent_neural_network(x):
 	conv3 = leakyrelu(conv3)
 	conv3 = tf.nn.max_pool(conv3, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
+	list_to_be_flattened_and_merged = [conv1, conv2, conv3, lstm_layer_1_1, lstm_layer_2_1, lstm_layer_2_2, lstm_layer_2_3, lstm_layer_2_4, lstm_layer_3_1, lstm_layer_3_2, lstm_layer_3_3, lstm_layer_3_4, lstm_layer_3_5, lstm_layer_3_6, lstm_layer_3_7, lstm_layer_3_8]
+	merged = flatten_and_merge(list_to_be_flattened_and_merged)
 
 
+	w_fc1 = get_variable('w_fc1', shape=[num_features,128], dtype=tf.float32)
+	w_fc2 = get_variable('w_fc2', shape=[128, NUM_CLASSES], dtype=tf.float32)
+	b_fc1 = get_variable('b_fc1', shape=[128], dtype=tf.float32)
+	b_fc2 = get_variable('b_fc2', shape=[NUM_CLASSES], dtype=tf.float32)
 
-
-
-
-	lstm_layer_1 = tf.reshape(lstm_layer_1, [-1, 161*384])
-
-	weights_1 = tf.Variable(tf.random_normal([161*384, 128]), dtype=tf.float32)
-	weights_2 = tf.Variable(tf.random_normal([128, NUM_CLASSES]), dtype=tf.float32)
-	biases_1 = tf.Variable(tf.random_normal([128]), dtype=tf.float32)
-	biases_2 = tf.Variable(tf.random_normal([NUM_CLASSES]), dtype=tf.float32)
-
-	fully_connected_1 = tf.matmul(lstm_layer_1, weights_1) + biases_1
-	fully_connected_2 = tf.matmul(fully_connected_1, weights_2) + biases_2
+	fully_connected_1 = tf.matmul(merged, w_fc1) + b_fc1
+	fully_connected_2 = tf.matmul(fully_connected_1, w_fc2) + b_fc2
 
 	return fully_connected_2
 
