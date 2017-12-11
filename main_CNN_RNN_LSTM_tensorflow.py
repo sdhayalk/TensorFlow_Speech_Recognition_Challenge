@@ -15,7 +15,7 @@ def shuffle_randomize(dataset_features, dataset_labels):
 
 def get_batch(dataset, i, BATCH_SIZE):
 	if i*BATCH_SIZE+BATCH_SIZE > dataset.shape[0]:
-		return dataset[i*BATCH_SIZE:, :], i*BATCH_SIZE+BATCH_SIZE - dataset.shape[0]
+		return dataset[i*BATCH_SIZE:, :], dataset.shape[0] - i*BATCH_SIZE
 	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :], BATCH_SIZE
 
 
@@ -89,10 +89,10 @@ def recurrent_neural_network(x, current_batch_size):
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=3)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
-	conv1_split1 = tf.reshape(conv1_split1, [current_batch_size, 81, 50*4])
-	conv1_split2 = tf.reshape(conv1_split2, [current_batch_size, 81, 50*4])
-	conv1_split3 = tf.reshape(conv1_split3, [current_batch_size, 81, 50*4])
-	conv1_split4 = tf.reshape(conv1_split4, [current_batch_size, 81, 50*4])
+	conv1_split1 = tf.reshape(conv1_split1, [-1, 81, 50*4])
+	conv1_split2 = tf.reshape(conv1_split2, [-1, 81, 50*4])
+	conv1_split3 = tf.reshape(conv1_split3, [-1, 81, 50*4])
+	conv1_split4 = tf.reshape(conv1_split4, [-1, 81, 50*4])
 
 	lstm_cell_2_1 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_2 = rnn.LSTMCell(32, state_is_tuple=True)
@@ -109,14 +109,14 @@ def recurrent_neural_network(x, current_batch_size):
 	conv2 = tf.nn.max_pool(conv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	conv2_split1, conv2_split2, conv2_split3, conv2_split4, conv2_split5, conv2_split6, conv2_split7, conv2_split8 = tf.split(conv2, num_or_size_splits=8, axis=3)
-	conv2_split1 = tf.reshape(conv2_split1, [current_batch_size, 41, 100])
-	conv2_split2 = tf.reshape(conv2_split2, [current_batch_size, 41, 100])
-	conv2_split3 = tf.reshape(conv2_split3, [current_batch_size, 41, 100])
-	conv2_split4 = tf.reshape(conv2_split4, [current_batch_size, 41, 100])
-	conv2_split5 = tf.reshape(conv2_split5, [current_batch_size, 41, 100])
-	conv2_split6 = tf.reshape(conv2_split6, [current_batch_size, 41, 100])
-	conv2_split7 = tf.reshape(conv2_split7, [current_batch_size, 41, 100])
-	conv2_split8 = tf.reshape(conv2_split8, [current_batch_size, 41, 100])
+	conv2_split1 = tf.reshape(conv2_split1, [-1, 41, 100])
+	conv2_split2 = tf.reshape(conv2_split2, [-1, 41, 100])
+	conv2_split3 = tf.reshape(conv2_split3, [-1, 41, 100])
+	conv2_split4 = tf.reshape(conv2_split4, [-1, 41, 100])
+	conv2_split5 = tf.reshape(conv2_split5, [-1, 41, 100])
+	conv2_split6 = tf.reshape(conv2_split6, [-1, 41, 100])
+	conv2_split7 = tf.reshape(conv2_split7, [-1, 41, 100])
+	conv2_split8 = tf.reshape(conv2_split8, [-1, 41, 100])
 
 	lstm_cell_3_1 = rnn.LSTMCell(16, state_is_tuple=True)
 	lstm_cell_3_2 = rnn.LSTMCell(16, state_is_tuple=True)
@@ -168,19 +168,23 @@ with tf.Session() as sess:
 		total_cost = 0
 
 		for i in range(0, int(NUM_EXAMPLES/BATCH_SIZE)):
-			batch_x, current_batch_size = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
+			batch_x, batch_current_batch_size = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
 			batch_y, _ = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
-			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y, current_batch_size: current_batch_size})	# train on the given batch size of features and labels
+			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y, current_batch_size: batch_current_batch_size})	# train on the given batch size of features and labels
 			total_cost += batch_cost
 
 		print("Epoch:", epoch, "\tCost:", total_cost)
 
 		# predict validation accuracy after every epoch
+		batch_x, batch_current_batch_size = get_batch(dataset_validation_features, 0, BATCH_SIZE)
+		batch_y, _ = get_batch(dataset_validation_labels, 0, BATCH_SIZE)
+		print(batch_current_batch_size)
+
 		y_predicted = tf.nn.softmax(logits)
 		correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
 		accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-		accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels, current_batch_size:16})
+		accuracy_validation = accuracy_function.eval({x:batch_x, y:batch_y, current_batch_size:batch_current_batch_size})
 		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 		# training end
 
