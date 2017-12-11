@@ -71,7 +71,8 @@ def leakyrelu(x):
 def flatten_and_merge(list_to_be_flattened_and_merged):
 	flattened_list = []
 	for tensor in list_to_be_flattened_and_merged:
-		flattened_list.append(tf.contrib.layers.flatten(tensor))
+		# flattened_list.append(tf.contrib.layers.flatten(tensor))
+		flattened_list.append(tf.reshape(tensor, [BATCH_SIZE, -1]))
 
 	merged = merge(flattened_list, mode='concat')
 	return merged
