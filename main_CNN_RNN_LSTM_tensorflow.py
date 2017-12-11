@@ -15,8 +15,8 @@ def shuffle_randomize(dataset_features, dataset_labels):
 
 def get_batch(dataset, i, BATCH_SIZE):
 	if i*BATCH_SIZE+BATCH_SIZE > dataset.shape[0]:
-		return dataset[i*BATCH_SIZE:, :]
-	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :]
+		return dataset[i*BATCH_SIZE:, :], i*BATCH_SIZE+BATCH_SIZE - dataset.shape[0]
+	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :], BATCH_SIZE
 
 
 DATASET_PATH = 'G:/DL/tf_speech_recognition'
@@ -53,6 +53,7 @@ BATCH_SIZE = 32
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
+current_batch_size = tf.placeholder(tf.int32)
 
 weights = {
 	'w_conv1': tf.get_variable('w_conv1', shape=[3,3,1,32], dtype=tf.float32),
@@ -77,7 +78,7 @@ def flatten_and_merge(list_to_be_flattened_and_merged):
 	merged = merge(flattened_list, mode='concat')
 	return merged
 
-def recurrent_neural_network(x):
+def recurrent_neural_network(x, current_batch_size):
 
 	lstm_cell_1_1 = rnn.LSTMCell(128, state_is_tuple=True)
 	lstm_layer_1_1, lstm_layer_1_1_states = tf.nn.dynamic_rnn(lstm_cell_1_1, x, dtype=tf.float32)
@@ -88,10 +89,10 @@ def recurrent_neural_network(x):
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=3)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
-	conv1_split1 = tf.reshape(conv1_split1, [BATCH_SIZE, 81, 50*4])
-	conv1_split2 = tf.reshape(conv1_split2, [BATCH_SIZE, 81, 50*4])
-	conv1_split3 = tf.reshape(conv1_split3, [BATCH_SIZE, 81, 50*4])
-	conv1_split4 = tf.reshape(conv1_split4, [BATCH_SIZE, 81, 50*4])
+	conv1_split1 = tf.reshape(conv1_split1, [current_batch_size, 81, 50*4])
+	conv1_split2 = tf.reshape(conv1_split2, [current_batch_size, 81, 50*4])
+	conv1_split3 = tf.reshape(conv1_split3, [current_batch_size, 81, 50*4])
+	conv1_split4 = tf.reshape(conv1_split4, [current_batch_size, 81, 50*4])
 
 	lstm_cell_2_1 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_2 = rnn.LSTMCell(32, state_is_tuple=True)
@@ -108,14 +109,14 @@ def recurrent_neural_network(x):
 	conv2 = tf.nn.max_pool(conv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	conv2_split1, conv2_split2, conv2_split3, conv2_split4, conv2_split5, conv2_split6, conv2_split7, conv2_split8 = tf.split(conv2, num_or_size_splits=8, axis=3)
-	conv2_split1 = tf.reshape(conv2_split1, [BATCH_SIZE, 41, 100])
-	conv2_split2 = tf.reshape(conv2_split2, [BATCH_SIZE, 41, 100])
-	conv2_split3 = tf.reshape(conv2_split3, [BATCH_SIZE, 41, 100])
-	conv2_split4 = tf.reshape(conv2_split4, [BATCH_SIZE, 41, 100])
-	conv2_split5 = tf.reshape(conv2_split5, [BATCH_SIZE, 41, 100])
-	conv2_split6 = tf.reshape(conv2_split6, [BATCH_SIZE, 41, 100])
-	conv2_split7 = tf.reshape(conv2_split7, [BATCH_SIZE, 41, 100])
-	conv2_split8 = tf.reshape(conv2_split8, [BATCH_SIZE, 41, 100])
+	conv2_split1 = tf.reshape(conv2_split1, [current_batch_size, 41, 100])
+	conv2_split2 = tf.reshape(conv2_split2, [current_batch_size, 41, 100])
+	conv2_split3 = tf.reshape(conv2_split3, [current_batch_size, 41, 100])
+	conv2_split4 = tf.reshape(conv2_split4, [current_batch_size, 41, 100])
+	conv2_split5 = tf.reshape(conv2_split5, [current_batch_size, 41, 100])
+	conv2_split6 = tf.reshape(conv2_split6, [current_batch_size, 41, 100])
+	conv2_split7 = tf.reshape(conv2_split7, [current_batch_size, 41, 100])
+	conv2_split8 = tf.reshape(conv2_split8, [current_batch_size, 41, 100])
 
 	lstm_cell_3_1 = rnn.LSTMCell(16, state_is_tuple=True)
 	lstm_cell_3_2 = rnn.LSTMCell(16, state_is_tuple=True)
@@ -143,7 +144,7 @@ def recurrent_neural_network(x):
 
 
 	# fully connected layers
-	num_features = 500
+	num_features = 136624
 	w_fc1 = tf.get_variable('w_fc1', shape=[num_features,128], dtype=tf.float32)
 	w_fc2 = tf.get_variable('w_fc2', shape=[128, NUM_CLASSES], dtype=tf.float32)
 	b_fc1 = tf.get_variable('b_fc1', shape=[128], dtype=tf.float32)
@@ -154,7 +155,7 @@ def recurrent_neural_network(x):
 
 	return fully_connected_2
 
-logits = recurrent_neural_network(x)
+logits = recurrent_neural_network(x, current_batch_size)
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
 optimizer = tf.train.AdamOptimizer()
 training = optimizer.minimize(loss)
@@ -167,10 +168,10 @@ with tf.Session() as sess:
 		total_cost = 0
 
 		for i in range(0, int(NUM_EXAMPLES/BATCH_SIZE)):
-			batch_x = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
-			batch_y = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
+			batch_x, current_batch_size = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
+			batch_y, _ = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
-			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
+			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y, current_batch_size: current_batch_size})	# train on the given batch size of features and labels
 			total_cost += batch_cost
 
 		print("Epoch:", epoch, "\tCost:", total_cost)
@@ -183,33 +184,31 @@ with tf.Session() as sess:
 		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 		# training end
 
-		# testing
-		y_predicted_labels = []
-		audio_files_list = []
-		dataset_test_features = []
+		# # testing
+		# y_predicted_labels = []
+		# audio_files_list = []
+		# dataset_test_features = []
 
-		for audio_file in audio_filenames:
-			audio_files_list.append(audio_file)
-			dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
+		# for audio_file in audio_filenames:
+		# 	audio_files_list.append(audio_file)
+		# 	dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
 
-			if len(audio_files_list) > 10000:
-				audio_files_list = []
-				dataset_test_features = np.array(dataset_test_features)
-				dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
-				y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
+		# 	if len(audio_files_list) > 10000:
+		# 		audio_files_list = []
+		# 		dataset_test_features = np.array(dataset_test_features)
+		# 		dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
+		# 		y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
 
-		# testing end
+		# # testing end
 
-		# writing predicted labels into a csv file
-		y_predicted_labels = np.array(y_predicted_labels)
-		with open('run'+str(epoch)+'.csv','w') as file:	
-			file.write('fname,label')
-			file.write('\n')
+		# # writing predicted labels into a csv file
+		# y_predicted_labels = np.array(y_predicted_labels)
+		# with open('run'+str(epoch)+'.csv','w') as file:	
+		# 	file.write('fname,label')
+		# 	file.write('\n')
 
-			for i in range(0, y_predicted_labels.shape[0]):
-				file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
-				file.write('\n')
+		# 	for i in range(0, y_predicted_labels.shape[0]):
+		# 		file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+		# 		file.write('\n')
 
 		
-
-
