@@ -98,40 +98,40 @@ with tf.Session() as sess:
 
 		print("Epoch:", epoch, "\tCost:", total_cost)
 
-		# predict validation accuracy after every epoch
-		y_predicted = tf.nn.softmax(logits)
-		correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
-		accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-		accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels})
-		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
-		# training end
+		# # predict validation accuracy after every epoch
+		# y_predicted = tf.nn.softmax(logits)
+		# correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
+		# accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
+		# accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels})
+		# print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
+		# # training end
 
-		# testing
-		y_predicted_labels = []
-		audio_files_list = []
-		dataset_test_features = []
+		# # testing
+		# y_predicted_labels = []
+		# audio_files_list = []
+		# dataset_test_features = []
 
-		for audio_file in audio_filenames:
-			audio_files_list.append(audio_file)
-			dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
+		# for audio_file in audio_filenames:
+		# 	audio_files_list.append(audio_file)
+		# 	dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
 
-			if len(audio_files_list) > 10000:
-				audio_files_list = []
-				dataset_test_features = np.array(dataset_test_features)
-				dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
-				y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
+		# 	if len(audio_files_list) > 10000:
+		# 		audio_files_list = []
+		# 		dataset_test_features = np.array(dataset_test_features)
+		# 		dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
+		# 		y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
 
-		# testing end
+		# # testing end
 
-		# writing predicted labels into a csv file
-		y_predicted_labels = np.array(y_predicted_labels)
-		with open('run'+str(epoch)+'.csv','w') as file:	
-			file.write('fname,label')
-			file.write('\n')
+		# # writing predicted labels into a csv file
+		# y_predicted_labels = np.array(y_predicted_labels)
+		# with open('run'+str(epoch)+'.csv','w') as file:	
+		# 	file.write('fname,label')
+		# 	file.write('\n')
 
-			for i in range(0, y_predicted_labels.shape[0]):
-				file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
-				file.write('\n')
+		# 	for i in range(0, y_predicted_labels.shape[0]):
+		# 		file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+		# 		file.write('\n')
 
 		
 

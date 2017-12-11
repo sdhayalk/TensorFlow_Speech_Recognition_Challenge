@@ -39,8 +39,8 @@ print('Shuffling training dataset')
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
 
 # divide training set into training and validation
-dataset_validation_features, dataset_validation_labels = dataset_train_features[15:dataset_train_features.shape[0], :], dataset_train_labels[15:dataset_train_labels.shape[0], :]
-dataset_train_features, dataset_train_labels = dataset_train_features[0:15, :], dataset_train_labels[0:15, :]
+dataset_validation_features, dataset_validation_labels = dataset_train_features[20:dataset_train_features.shape[0], :], dataset_train_labels[20:dataset_train_labels.shape[0], :]
+dataset_train_features, dataset_train_labels = dataset_train_features[0:20, :], dataset_train_labels[0:20, :]
 print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
 
 CLASSES = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
@@ -69,11 +69,11 @@ biases = {
 def leakyrelu(x):
 	return tf.nn.relu(x) - 0.2*tf.nn.relu(-x)
 
-def flatten_and_merge(list_to_be_flattened_and_merged):
+def flatten_and_merge(list_to_be_flattened_and_merged, current_batch_size):
 	flattened_list = []
 	for tensor in list_to_be_flattened_and_merged:
 		# flattened_list.append(tf.contrib.layers.flatten(tensor))
-		flattened_list.append(tf.reshape(tensor, [BATCH_SIZE, -1]))
+		flattened_list.append(tf.reshape(tensor, [current_batch_size, -1]))
 
 	merged = merge(flattened_list, mode='concat')
 	return merged
@@ -140,7 +140,7 @@ def recurrent_neural_network(x, current_batch_size):
 	conv3 = tf.nn.max_pool(conv3, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	list_to_be_flattened_and_merged = [conv1, conv2, conv3, lstm_layer_1_1, lstm_layer_2_1, lstm_layer_2_2, lstm_layer_2_3, lstm_layer_2_4, lstm_layer_3_1, lstm_layer_3_2, lstm_layer_3_3, lstm_layer_3_4, lstm_layer_3_5, lstm_layer_3_6, lstm_layer_3_7, lstm_layer_3_8]
-	merged = flatten_and_merge(list_to_be_flattened_and_merged)
+	merged = flatten_and_merge(list_to_be_flattened_and_merged, current_batch_size)
 
 
 	# fully connected layers
@@ -180,7 +180,7 @@ with tf.Session() as sess:
 		y_predicted = tf.nn.softmax(logits)
 		correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
 		accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-		accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels})
+		accuracy_validation = accuracy_function.eval({x:dataset_validation_features, y:dataset_validation_labels, current_batch_size:16})
 		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 		# training end
 
