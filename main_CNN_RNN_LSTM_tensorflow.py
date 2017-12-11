@@ -49,7 +49,7 @@ NUM_EXAMPLES = dataset_train_features.shape[0]
 NUM_CHUNKS = dataset_train_features.shape[1]	# 161
 CHUNK_SIZE = dataset_train_features.shape[2]	# 99 
 NUM_EPOCHS = 100
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
@@ -144,7 +144,7 @@ def recurrent_neural_network(x, current_batch_size):
 
 
 	# fully connected layers
-	num_features = 136624
+	num_features = 273248
 	w_fc1 = tf.get_variable('w_fc1', shape=[num_features,128], dtype=tf.float32)
 	w_fc2 = tf.get_variable('w_fc2', shape=[128, NUM_CLASSES], dtype=tf.float32)
 	b_fc1 = tf.get_variable('b_fc1', shape=[128], dtype=tf.float32)
