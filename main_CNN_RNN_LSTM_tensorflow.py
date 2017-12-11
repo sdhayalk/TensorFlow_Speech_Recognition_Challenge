@@ -88,18 +88,18 @@ def recurrent_neural_network(x):
 
 	conv1_split1, conv1_split2, conv1_split3, conv1_split4 = tf.split(conv1, num_or_size_splits=4, axis=3)	# refer docs for tf.split here: https://www.tensorflow.org/api_docs/python/tf/split
 	conv1_split1 = tf.reshape(conv1_split1, [BATCH_SIZE, 81, 50*4])
-	conv1_split2 = tf.reshape(conv1_split2, [tf.shape(conv1_split2)[0], tf.shape(conv1_split2)[-3], (tf.shape(conv1_split2)[-2])*4])
-	conv1_split3 = tf.reshape(conv1_split3, [tf.shape(conv1_split3)[0], tf.shape(conv1_split3)[-3], (tf.shape(conv1_split3)[-2])*4])
-	conv1_split4 = tf.reshape(conv1_split4, [tf.shape(conv1_split4)[0], tf.shape(conv1_split4)[-3], (tf.shape(conv1_split4)[-2])*4])
+	conv1_split2 = tf.reshape(conv1_split2, [BATCH_SIZE, 81, 50*4])
+	conv1_split3 = tf.reshape(conv1_split3, [BATCH_SIZE, 81, 50*4])
+	conv1_split4 = tf.reshape(conv1_split4, [BATCH_SIZE, 81, 50*4])
 
 	lstm_cell_2_1 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_2 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_3 = rnn.LSTMCell(32, state_is_tuple=True)
 	lstm_cell_2_4 = rnn.LSTMCell(32, state_is_tuple=True)
-	lstm_layer_2_1, lstm_layer_2_1_states = tf.nn.dynamic_rnn(lstm_cell_2_1, conv1_split1, dtype=tf.float32)
-	lstm_layer_2_2, lstm_layer_2_2_states = tf.nn.dynamic_rnn(lstm_cell_2_2, conv1_split2, dtype=tf.float32)
-	lstm_layer_2_3, lstm_layer_2_3_states = tf.nn.dynamic_rnn(lstm_cell_2_3, conv1_split3, dtype=tf.float32)
-	lstm_layer_2_4, lstm_layer_2_4_states = tf.nn.dynamic_rnn(lstm_cell_2_4, conv1_split4, dtype=tf.float32)
+	lstm_layer_2_1, lstm_layer_2_1_states = tf.nn.dynamic_rnn(lstm_cell_2_1, conv1_split1, dtype=tf.float32, scope='lstm_layer_2_1')
+	lstm_layer_2_2, lstm_layer_2_2_states = tf.nn.dynamic_rnn(lstm_cell_2_2, conv1_split2, dtype=tf.float32, scope='lstm_layer_2_2')
+	lstm_layer_2_3, lstm_layer_2_3_states = tf.nn.dynamic_rnn(lstm_cell_2_3, conv1_split3, dtype=tf.float32, scope='lstm_layer_2_3')
+	lstm_layer_2_4, lstm_layer_2_4_states = tf.nn.dynamic_rnn(lstm_cell_2_4, conv1_split4, dtype=tf.float32, scope='lstm_layer_2_4')
 
 
 	conv2 = tf.nn.conv2d(conv1, weights['w_conv2'], strides=[1,1,1,1], padding='SAME') + biases['b_conv2']
