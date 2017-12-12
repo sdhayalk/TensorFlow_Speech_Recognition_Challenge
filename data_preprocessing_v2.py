@@ -21,6 +21,7 @@ def log_specgram(audio, sample_rate, window_size=20, step_size=10, eps=1e-10):
 
     return freqs, np.log(spec.T.astype(np.float32) + eps)
 
+
 def convert_to_txt(path, type='train'):
 	TYPES = ['train', 'test']
 	if type not in TYPES:
@@ -60,6 +61,29 @@ def convert_to_txt(path, type='train'):
 						file.write('\n')
 
 				# break
+
+	if type == 'test':
+		for audio_file in TEST_PATH:
+			audio_file_path = TEST_PATH + os.sep + audio_file
+			samplerate, test_sound  = wavfile.read(audio_file_path)
+			
+			if len(test_sound) < 16000:
+				diff = 16000 - len(test_sound)
+				while(diff > 0):
+					test_sound = np.insert(test_sound, 1, 0)
+					diff -= 1
+
+			_, spectrogram = log_specgram(test_sound, samplerate)
+			data = spectrogram.T
+
+			with open(str(audio_file_path).split(str='.')[0] + '.csv','w') as file:	
+				for row in data:
+					file.write(str(row[0]))
+					for j in range(1, len(row)):
+						file.write(", " + str(row[j]))
+					file.write('\n')
+
+			# break
 
 
 
@@ -118,7 +142,7 @@ def get_audio_dataset_features_labels(path, type='train'):
 
 				# break
 	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float'), one_hot_map
-	
+
 
 def get_audio_test_dataset_filenames(path):
 	TEST_PATH = path + os.sep + 'test' + os.sep + 'audio'
@@ -129,6 +153,7 @@ def get_audio_test_dataset_filenames(path):
 		dataset_filenames.append(audio_file)
 
 	return dataset_filenames
+
 
 def get_audio_test_dataset_features_labels(path, audio_file):
 	TEST_PATH = path + os.sep + 'test' + os.sep + 'audio'
@@ -148,12 +173,14 @@ def get_audio_test_dataset_features_labels(path, audio_file):
 
 	return np.array(dataset_features, dtype='float')
 
+
 def normalize_training_dataset(dataset_train_features):
 	min_value = np.amin(dataset_train_features)
 	max_value = np.max(dataset_train_features)
 
 	dataset_train_features = (dataset_train_features - min_value) / (max_value - min_value)
 	return dataset_train_features, min_value, max_value
+
 
 def normalize_test_dataset(datast_test_features, min_value, max_value):
 	datast_test_features = (datast_test_features - min_value) / (max_value - min_value)
