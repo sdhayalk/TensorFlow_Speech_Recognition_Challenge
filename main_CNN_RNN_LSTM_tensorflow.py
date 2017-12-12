@@ -39,8 +39,8 @@ print('Shuffling training dataset')
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
 
 # divide training set into training and validation
-dataset_validation_features, dataset_validation_labels = dataset_train_features[20:dataset_train_features.shape[0], :], dataset_train_labels[20:dataset_train_labels.shape[0], :]
-dataset_train_features, dataset_train_labels = dataset_train_features[0:20, :], dataset_train_labels[0:20, :]
+dataset_validation_features, dataset_validation_labels = dataset_train_features[2500:dataset_train_features.shape[0], :], dataset_train_labels[2500:dataset_train_labels.shape[0], :]
+dataset_train_features, dataset_train_labels = dataset_train_features[0:2500, :], dataset_train_labels[0:2500, :]
 print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
 
 CLASSES = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']

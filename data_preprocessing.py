@@ -54,7 +54,7 @@ def get_audio_dataset_features_labels(path, allowed_labels, type='train'):
 			print("In folder", folder)
 			audio_files_list = os.listdir(TRAIN_PATH + os.sep + folder)
 
-			for audio_file in audio_files_list:
+			for audio_file in audio_files_list[0:100]:
 				audio_file_path = TRAIN_PATH + os.sep + folder + os.sep + audio_file
 				samplerate, test_sound  = wavfile.read(audio_file_path)
 				
@@ -79,7 +79,7 @@ def get_audio_dataset_features_labels(path, allowed_labels, type='train'):
 					label[label_index] = 1
 					dataset_labels.append(label)
 
-				break
+				# break
 	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float'), one_hot_map
 
 def get_audio_test_dataset_filenames(path):
