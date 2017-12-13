@@ -209,8 +209,7 @@ with tf.Session() as sess:
 				audio_files_list.append(audio_file)
 				dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
 
-				if len(audio_files_list) > 32000:
-					audio_files_list = []
+				if len(audio_files_list) > 3200:
 					dataset_test_features = np.array(dataset_test_features)
 					dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
 
@@ -218,9 +217,10 @@ with tf.Session() as sess:
 						batch_x, batch_current_batch_size = get_batch(dataset_test_features, i, BATCH_SIZE)
 						y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
 
-					test_samples_picked += 32000
+					test_samples_picked += 3200
 					print('test_samples_picked:', test_samples_picked)
 					dataset_test_features = []
+					audio_files_list = []
 
 				# testing end
 
