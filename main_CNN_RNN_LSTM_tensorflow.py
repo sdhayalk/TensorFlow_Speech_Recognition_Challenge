@@ -183,7 +183,7 @@ with tf.Session() as sess:
 		for i in range(0, int(dataset_validation_features.shape[0]/BATCH_SIZE)):
 			batch_x, batch_current_batch_size = get_batch(dataset_validation_features, i, BATCH_SIZE)
 			batch_y, _ = get_batch(dataset_validation_labels, i, BATCH_SIZE)
-			print(batch_current_batch_size)
+			# print(batch_current_batch_size)
 
 			y_predicted = tf.nn.softmax(logits)
 			correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
@@ -195,31 +195,38 @@ with tf.Session() as sess:
 			print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
 			# training end
 
-		# # testing
-		# y_predicted_labels = []
-		# audio_files_list = []
-		# dataset_test_features = []
+		# testing
+		y_predicted_labels = []
+		audio_files_list = []
+		dataset_test_features = []
+		test_samples_picked = 0
 
-		# for audio_file in audio_filenames:
-		# 	audio_files_list.append(audio_file)
-		# 	dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
+		for audio_file in audio_filenames:
+			audio_files_list.append(audio_file)
+			dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
 
-		# 	if len(audio_files_list) > 10000:
-		# 		audio_files_list = []
-		# 		dataset_test_features = np.array(dataset_test_features)
-		# 		dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
-		# 		y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
+			if len(audio_files_list) > 32000:
+				audio_files_list = []
+				dataset_test_features = np.array(dataset_test_features)
+				dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
 
-		# # testing end
+				for i in range(0, int(dataset_test_features.shape[0]/BATCH_SIZE)):
+					batch_x, batch_current_batch_size = get_batch(dataset_test_features, i, BATCH_SIZE)
+					y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
 
-		# # writing predicted labels into a csv file
-		# y_predicted_labels = np.array(y_predicted_labels)
-		# with open('run'+str(epoch)+'.csv','w') as file:	
-		# 	file.write('fname,label')
-		# 	file.write('\n')
+				test_samples_picked += 32000
+				print('test_samples_picked:', test_samples_picked)
 
-		# 	for i in range(0, y_predicted_labels.shape[0]):
-		# 		file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
-		# 		file.write('\n')
+		# testing end
+
+		# writing predicted labels into a csv file
+		y_predicted_labels = np.array(y_predicted_labels)
+		with open('run'+str(epoch)+'.csv','w') as file:	
+			file.write('fname,label')
+			file.write('\n')
+
+			for i in range(0, y_predicted_labels.shape[0]):
+				file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+				file.write('\n')
 
 		
