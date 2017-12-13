@@ -19,7 +19,8 @@ def get_batch(dataset, i, BATCH_SIZE):
 	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :], BATCH_SIZE
 
 
-DATASET_PATH = 'G:/DL/tf_speech_recognition'
+#DATASET_PATH = 'G:/DL/tf_speech_recognition'
+DATASET_PATH = '/home/paperspace/tf_speech_recognition'
 ALLOWED_LABELS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 ALLOWED_LABELS_MAP = {}
 for i in range(0, len(ALLOWED_LABELS)):
@@ -177,16 +178,22 @@ with tf.Session() as sess:
 		print("Epoch:", epoch, "\tCost:", total_cost)
 
 		# predict validation accuracy after every epoch
-		batch_x, batch_current_batch_size = get_batch(dataset_validation_features, 0, BATCH_SIZE)
-		batch_y, _ = get_batch(dataset_validation_labels, 0, BATCH_SIZE)
-		print(batch_current_batch_size)
+		sum_accuracy_validation = 0.0
+		sum_i = 0
+		for i in range(0, int(dataset_validation_features.shape[0]/BATCH_SIZE)):
+			batch_x, batch_current_batch_size = get_batch(dataset_validation_features, i, BATCH_SIZE)
+			batch_y, _ = get_batch(dataset_validation_labels, i, BATCH_SIZE)
+			print(batch_current_batch_size)
 
-		y_predicted = tf.nn.softmax(logits)
-		correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
-		accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-		accuracy_validation = accuracy_function.eval({x:batch_x, y:batch_y, current_batch_size:batch_current_batch_size})
-		print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
-		# training end
+			y_predicted = tf.nn.softmax(logits)
+			correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
+			accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
+			accuracy_validation = accuracy_function.eval({x:batch_x, y:batch_y, current_batch_size:batch_current_batch_size})
+
+			sum_accuracy_validation += accuracy_validation
+			sum_i += 1
+			print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
+			# training end
 
 		# # testing
 		# y_predicted_labels = []

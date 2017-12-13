@@ -53,7 +53,7 @@ def convert_to_txt(path, type='train'):
 				_, spectrogram = log_specgram(test_sound, samplerate)
 				data = spectrogram.T
 
-				with open(str(audio_file_path).split(str='.')[0] + '.csv','w') as file:	
+				with open(str(audio_file_path).split('.')[0] + '.csv','w') as file:	
 					for row in data:
 						file.write(str(row[0]))
 						for j in range(1, len(row)):
@@ -187,7 +187,8 @@ def normalize_test_dataset(datast_test_features, min_value, max_value):
 	return datast_test_features
 
 
-# TRAIN_PATH = 'G:/DL/tf_speech_recognition'
+TRAIN_PATH = 'G:/DL/tf_speech_recognition'
 # dataset_train_features, dataset_train_labels = get_audio_dataset_features_labels(TRAIN_PATH, type='train')
 # np.save('dataset_train_features', dataset_train_features)
 # np.save('dataset_train_labels', dataset_train_labels)
+convert_to_txt(TRAIN_PATH, type='train')
