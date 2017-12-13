@@ -220,17 +220,16 @@ with tf.Session() as sess:
 
 					test_samples_picked += 3200
 					print('test_samples_picked:', test_samples_picked)
-					dataset_test_features = []
-					audio_files_list = []
-
 
 					# writing predicted labels into a csv file
 					y_predicted_labels = np.array(y_predicted_labels)
 					with open('run'+str(epoch)+'.csv','w') as file:	
 						for i in range(0, y_predicted_labels.shape[0]):
-							file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+							file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
 							file.write('\n')
 
 					y_predicted_labels = []
+					dataset_test_features = []
+					audio_files_list = []
 
 		
