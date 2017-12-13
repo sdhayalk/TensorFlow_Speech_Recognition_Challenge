@@ -227,9 +227,6 @@ with tf.Session() as sess:
 					# writing predicted labels into a csv file
 					y_predicted_labels = np.array(y_predicted_labels)
 					with open('run'+str(epoch)+'.csv','w') as file:	
-						file.write('fname,label')
-						file.write('\n')
-
 						for i in range(0, y_predicted_labels.shape[0]):
 							file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
 							file.write('\n')
