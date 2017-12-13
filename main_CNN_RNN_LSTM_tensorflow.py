@@ -216,7 +216,7 @@ with tf.Session() as sess:
 
 					for i in range(0, int(dataset_test_features.shape[0]/BATCH_SIZE)):
 						batch_x, batch_current_batch_size = get_batch(dataset_test_features, i, BATCH_SIZE)
-						y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features, current_batch_size: batch_current_batch_size}))
+						y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x, current_batch_size: batch_current_batch_size}))
 
 					test_samples_picked += 3200
 					print('test_samples_picked:', test_samples_picked)
