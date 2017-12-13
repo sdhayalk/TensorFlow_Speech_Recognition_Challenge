@@ -86,6 +86,7 @@ def recurrent_neural_network(x, current_batch_size):
 
 	x = tf.reshape(x, [-1, tf.shape(x)[-2], tf.shape(x)[-1], 1])
 	conv1 = tf.nn.conv2d(x, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
+	conv1 = tf.contrib.layers.batch_norm(conv1)
 	conv1 = leakyrelu(conv1)
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
@@ -106,6 +107,7 @@ def recurrent_neural_network(x, current_batch_size):
 
 
 	conv2 = tf.nn.conv2d(conv1, weights['w_conv2'], strides=[1,1,1,1], padding='SAME') + biases['b_conv2']
+	conv2 = tf.contrib.layers.batch_norm(conv2)
 	conv2 = leakyrelu(conv2)
 	conv2 = tf.nn.max_pool(conv2, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
@@ -137,6 +139,7 @@ def recurrent_neural_network(x, current_batch_size):
 	lstm_layer_3_8, lstm_layer_3_8_states = tf.nn.dynamic_rnn(lstm_cell_3_8, conv2_split8, dtype=tf.float32, scope='lstm_layer_3_8')
 
 	conv3 = tf.nn.conv2d(conv2, weights['w_conv3'], strides=[1,1,1,1], padding='SAME') + biases['b_conv3']
+	conv3 = tf.contrib.layers.batch_norm(conv3)
 	conv3 = leakyrelu(conv3)
 	conv3 = tf.nn.max_pool(conv3, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
@@ -192,41 +195,43 @@ with tf.Session() as sess:
 
 			sum_accuracy_validation += accuracy_validation
 			sum_i += 1
-			print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation)
+			print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation, 'sum_i:', sum_i, 'sum_accuracy_validation:', sum_accuracy_validation)
 			# training end
 
 		# testing
-		y_predicted_labels = []
-		audio_files_list = []
-		dataset_test_features = []
-		test_samples_picked = 0
+		if epoch > 0 and epoch%4 == 0:
+			y_predicted_labels = []
+			audio_files_list = []
+			dataset_test_features = []
+			test_samples_picked = 0
 
-		for audio_file in audio_filenames:
-			audio_files_list.append(audio_file)
-			dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
+			for audio_file in audio_filenames:
+				audio_files_list.append(audio_file)
+				dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
 
-			if len(audio_files_list) > 32000:
-				audio_files_list = []
-				dataset_test_features = np.array(dataset_test_features)
-				dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
+				if len(audio_files_list) > 32000:
+					audio_files_list = []
+					dataset_test_features = np.array(dataset_test_features)
+					dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
 
-				for i in range(0, int(dataset_test_features.shape[0]/BATCH_SIZE)):
-					batch_x, batch_current_batch_size = get_batch(dataset_test_features, i, BATCH_SIZE)
-					y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
+					for i in range(0, int(dataset_test_features.shape[0]/BATCH_SIZE)):
+						batch_x, batch_current_batch_size = get_batch(dataset_test_features, i, BATCH_SIZE)
+						y_predicted_labels.append(sess.run(tf.argmax(y_predicted, 1), feed_dict={x: dataset_test_features}))
 
-				test_samples_picked += 32000
-				print('test_samples_picked:', test_samples_picked)
+					test_samples_picked += 32000
+					print('test_samples_picked:', test_samples_picked)
+					dataset_test_features = []
 
-		# testing end
+				# testing end
 
-		# writing predicted labels into a csv file
-		y_predicted_labels = np.array(y_predicted_labels)
-		with open('run'+str(epoch)+'.csv','w') as file:	
-			file.write('fname,label')
-			file.write('\n')
+				# writing predicted labels into a csv file
+				y_predicted_labels = np.array(y_predicted_labels)
+				with open('run'+str(epoch)+'.csv','w') as file:	
+					file.write('fname,label')
+					file.write('\n')
 
-			for i in range(0, y_predicted_labels.shape[0]):
-				file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
-				file.write('\n')
+					for i in range(0, y_predicted_labels.shape[0]):
+						file.write(str(audio_filenames[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+						file.write('\n')
 
 		
