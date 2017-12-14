@@ -210,7 +210,7 @@ with tf.Session() as sess:
 				audio_files_list.append(audio_file)
 				dataset_test_features.append(get_audio_test_dataset_features_labels(DATASET_PATH, audio_file))
 
-				if len(audio_files_list) > 3200:
+				if len(audio_files_list) == 3200:
 					dataset_test_features = np.array(dataset_test_features)
 					dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
 
@@ -233,5 +233,26 @@ with tf.Session() as sess:
 					y_predicted_labels = []
 					dataset_test_features = []
 					audio_files_list = []
+
+			# last set
+			dataset_test_features = np.array(dataset_test_features)
+			dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
+
+			for i in range(0, int(dataset_test_features.shape[0]/BATCH_SIZE)):
+				batch_x, batch_current_batch_size = get_batch(dataset_test_features, i, BATCH_SIZE)
+				temp = sess.run(tf.argmax(y_predicted, 1), feed_dict={x: batch_x, current_batch_size: batch_current_batch_size})
+				for element in temp:
+					y_predicted_labels.append(element) 
+
+			test_samples_picked += 3200
+			print('test_samples_picked:', test_samples_picked)
+
+			# writing predicted labels into a csv file
+			# y_predicted_labels = np.array(y_predicted_labels)
+			with open('run'+str(epoch)+'.csv','a') as file:	
+				for i in range(0, len(y_predicted_labels)):
+					file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
+					file.write('\n')
+
 
 		

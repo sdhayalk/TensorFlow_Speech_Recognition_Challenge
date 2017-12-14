@@ -90,6 +90,7 @@ def get_audio_test_dataset_filenames(path):
 	for audio_file in audio_files_list:
 		dataset_filenames.append(audio_file)
 
+	dataset_filenames.sort()
 	return dataset_filenames
 
 def get_audio_test_dataset_features_labels(path, audio_file):
