@@ -199,7 +199,7 @@ with tf.Session() as sess:
 			# training end
 
 		# testing
-		if epoch > 0 and epoch%4 == 0:
+		if epoch > 0 and epoch%2 == 0:
 			y_predicted_labels = []
 			audio_files_list = []
 			dataset_test_features = []
@@ -225,7 +225,7 @@ with tf.Session() as sess:
 
 					# writing predicted labels into a csv file
 					# y_predicted_labels = np.array(y_predicted_labels)
-					with open('run'+str(epoch)+'.csv','w') as file:	
+					with open('run'+str(epoch)+'.csv','a') as file:	
 						for i in range(0, len(y_predicted_labels)):
 							file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
 							file.write('\n')
