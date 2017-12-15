@@ -40,9 +40,9 @@ print('Shuffling training dataset')
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
 
 # divide training set into training and validation
-# dataset_validation_features, dataset_validation_labels = dataset_train_features[57000:dataset_train_features.shape[0], :], dataset_train_labels[57000:dataset_train_labels.shape[0], :]
-# dataset_train_features, dataset_train_labels = dataset_train_features[0:57000, :], dataset_train_labels[0:57000, :]
-# print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
+dataset_validation_features, dataset_validation_labels = dataset_train_features[57000:dataset_train_features.shape[0], :], dataset_train_labels[57000:dataset_train_labels.shape[0], :]
+dataset_train_features, dataset_train_labels = dataset_train_features[0:57000, :], dataset_train_labels[0:57000, :]
+print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
 
 CLASSES = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 NUM_CLASSES = len(CLASSES)
@@ -59,10 +59,10 @@ y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 def residual_block(x, num_input_filters, num_output_filters, block_num):
 
 	# defining the weights and biases for this residual block
-	w_conv_1 = tf.get_variable('rs_block_'+str(block_num)+'_w_conv1', shape=[3,3,num_input_filters, num_output_filters], dtype=tf.float32)
-	w_conv_2 = tf.get_variable('rs_block_'+str(block_num)+'_w_conv2', shape=[3,3,num_output_filters, num_output_filters], dtype=tf.float32)
-	b_conv_1 = tf.get_variable('rs_block_'+str(block_num)+'_b_conv1', shape=[num_output_filters], dtype=tf.float32)
-	b_conv_2 = tf.get_variable('rs_block_'+str(block_num)+'_b_conv2', shape=[num_output_filters], dtype=tf.float32)
+	w_conv_1 = tf.get_variable('rs_block_'+str(block_num)+'_w_conv_1', shape=[3,3,num_input_filters, num_output_filters], dtype=tf.float32)
+	w_conv_2 = tf.get_variable('rs_block_'+str(block_num)+'_w_conv_2', shape=[3,3,num_output_filters, num_output_filters], dtype=tf.float32)
+	b_conv_1 = tf.get_variable('rs_block_'+str(block_num)+'_b_conv_1', shape=[num_output_filters], dtype=tf.float32)
+	b_conv_2 = tf.get_variable('rs_block_'+str(block_num)+'_b_conv_2', shape=[num_output_filters], dtype=tf.float32)
 	
 	# implementing residual block logic
 	input_1 = tf.contrib.layers.batch_norm(x)
@@ -73,14 +73,21 @@ def residual_block(x, num_input_filters, num_output_filters, block_num):
 	weight_layer_2 = tf.nn.conv2d(intermediate, w_conv_2, strides=[1,1,1,1], padding='SAME') + b_conv_2
 
 	# elementwise addition of x and weight_layer_2
+	if num_input_filters != num_output_filters:
+		w_conv_increase = tf.get_variable('rs_block_'+str(block_num)+'_w_conv_increase', shape=[1,1,num_input_filters, num_output_filters], dtype=tf.float32)
+		b_conv_increase = tf.get_variable('rs_block_'+str(block_num)+'_b_conv_increase', shape=[num_output_filters], dtype=tf.float32)
+		x = tf.nn.conv2d(x, w_conv_increase, strides=[1,1,1,1], padding='SAME') + b_conv_increase
 	output = tf.add(x, weight_layer_2)
 
 	return output
 
 
 def recurrent_neural_network(x):
-	
-	
+
+	rs_block_1 = residual_block(x, 1, 32, 1)
+	rs_block_2 = residual_block(rs_block_1, 32, 32, 2)
+
+
 	# conv5 = tf.nn.max_pool(conv5, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 	# num_features = 1536
 	# flattened = tf.reshape(conv5, [BATCH_SIZE, num_features])
@@ -120,22 +127,22 @@ with tf.Session() as sess:
 
 		print("Epoch:", epoch, "\tCost:", total_cost)
 
-		# # predict validation accuracy after every epoch
-		# sum_accuracy_validation = 0.0
-		# sum_i = 0
-		# for i in range(0, int(dataset_validation_features.shape[0]/BATCH_SIZE)):
-		# 	batch_x = get_batch(dataset_validation_features, i, BATCH_SIZE)
-		# 	batch_y = get_batch(dataset_validation_labels, i, BATCH_SIZE)
+		# predict validation accuracy after every epoch
+		sum_accuracy_validation = 0.0
+		sum_i = 0
+		for i in range(0, int(dataset_validation_features.shape[0]/BATCH_SIZE)):
+			batch_x = get_batch(dataset_validation_features, i, BATCH_SIZE)
+			batch_y = get_batch(dataset_validation_labels, i, BATCH_SIZE)
 
-		# 	y_predicted = tf.nn.softmax(logits)
-		# 	correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
-		# 	accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-		# 	accuracy_validation = accuracy_function.eval({x:batch_x, y:batch_y})
+			y_predicted = tf.nn.softmax(logits)
+			correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
+			accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
+			accuracy_validation = accuracy_function.eval({x:batch_x, y:batch_y})
 
-		# 	sum_accuracy_validation += accuracy_validation
-		# 	sum_i += 1
-		# 	print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation, 'sum_i:', sum_i, 'sum_accuracy_validation:', sum_accuracy_validation)
-			# training end
+			sum_accuracy_validation += accuracy_validation
+			sum_i += 1
+			print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation, 'sum_i:', sum_i, 'sum_accuracy_validation:', sum_accuracy_validation)
+			training end
 
 		# testing
 		if epoch > 0 and epoch%2 == 0:
