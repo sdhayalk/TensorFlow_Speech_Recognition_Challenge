@@ -13,7 +13,7 @@ def augment_data(dataset, dataset_labels, augmentation_factor=1, use_random_shif
 
 	for num in range (0, dataset.shape[0]):
 
-		for i in range(0, augementation_factor):
+		for i in range(0, augmentation_factor):
 			# original image:
 			augmented_image.append(dataset[num])
 			augmented_image_labels.append(dataset_labels[num])

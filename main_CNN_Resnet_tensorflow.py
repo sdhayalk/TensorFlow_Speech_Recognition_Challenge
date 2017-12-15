@@ -18,8 +18,8 @@ def get_batch(dataset, i, BATCH_SIZE):
 	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :]
 
 
-#DATASET_PATH = 'G:/DL/tf_speech_recognition'
-DATASET_PATH = '/home/paperspace/tf_speech_recognition'
+DATASET_PATH = 'G:/DL/tf_speech_recognition'
+#DATASET_PATH = '/home/paperspace/tf_speech_recognition'
 ALLOWED_LABELS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 ALLOWED_LABELS_MAP = {}
 for i in range(0, len(ALLOWED_LABELS)):
@@ -27,7 +27,7 @@ for i in range(0, len(ALLOWED_LABELS)):
 
 dataset_train_features, dataset_train_labels, labels_one_hot_map = get_audio_dataset_features_labels(DATASET_PATH, ALLOWED_LABELS, type='train')
 audio_filenames = get_audio_test_dataset_filenames(DATASET_PATH)
-dataset_train_features = dataset_train_features.reshape((dataset_train_features[0], dataset_train_features[1], dataset_train_features[2], 1))
+dataset_train_features = dataset_train_features.reshape((dataset_train_features.shape[0], dataset_train_features.shape[1], dataset_train_features.shape[2], 1))
 
 print('dataset_train_features.shape:', dataset_train_features.shape, 'dataset_train_labels.shape:', dataset_train_labels.shape)
 
@@ -53,7 +53,7 @@ CHUNK_SIZE = dataset_train_features.shape[2]	# 99
 NUM_EPOCHS = 100
 BATCH_SIZE = 8
 
-x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
+x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE, 1])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 
 
@@ -105,7 +105,7 @@ def recurrent_neural_network(x):
 	rs_block_12 = residual_block(rs_block_11, 256, 256, 12)
 	rs_block_12 = tf.nn.max_pool(rs_block_12, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-	num_features = 1536
+	num_features = 19712
 	flattened = tf.reshape(rs_block_12, [BATCH_SIZE, num_features])
 
 	# fully connected layers
@@ -136,7 +136,7 @@ with tf.Session() as sess:
 			batch_x = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
 			batch_y = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
-			batch_x, batch_y = augment_data(batch_x, batch_y, augementation_factor=3)	# augment the data
+			batch_x, batch_y = augment_data(batch_x, batch_y, augmentation_factor=3)	# augment the data
 
 			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
 			total_cost += batch_cost
