@@ -57,13 +57,15 @@ y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
 current_batch_size = tf.placeholder(tf.int32)
 
 weights = {
-	'w_conv1': tf.get_variable('w_conv1', shape=[3,3,1,64], dtype=tf.float32),
+	'w_conv0': tf.get_variable('w_conv0', shape=[3,3,1,32], dtype=tf.float32),
+	'w_conv1': tf.get_variable('w_conv1', shape=[3,3,32,64], dtype=tf.float32),
 	'w_conv2': tf.get_variable('w_conv2', shape=[3,3,64,96], dtype=tf.float32),
 	'w_conv3': tf.get_variable('w_conv3', shape=[3,3,96,128], dtype=tf.float32),
 	'w_conv4': tf.get_variable('w_conv4', shape=[3,3,128,192], dtype=tf.float32),
 	'w_conv5': tf.get_variable('w_conv5', shape=[3,3,192,256], dtype=tf.float32)
 }
 biases = {
+	'b_conv0': tf.get_variable('b_conv0', shape=[32], dtype=tf.float32),
 	'b_conv1': tf.get_variable('b_conv1', shape=[64], dtype=tf.float32),
 	'b_conv2': tf.get_variable('b_conv2', shape=[96], dtype=tf.float32),
 	'b_conv3': tf.get_variable('b_conv3', shape=[128], dtype=tf.float32),
@@ -78,7 +80,12 @@ def leakyrelu(x):
 def recurrent_neural_network(x, current_batch_size):
 
 	x = tf.reshape(x, [-1, tf.shape(x)[-2], tf.shape(x)[-1], 1])
-	conv1 = tf.nn.conv2d(x, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
+	conv0 = tf.nn.conv2d(x, weights['w_conv0'], strides=[1,1,1,1], padding='SAME') + biases['b_conv0']
+	conv0 = tf.contrib.layers.batch_norm(conv0)
+	conv0 = leakyrelu(conv0)
+	conv0 = tf.nn.max_pool(conv0, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+
+	conv1 = tf.nn.conv2d(conv0, weights['w_conv1'], strides=[1,1,1,1], padding='SAME') + biases['b_conv1']
 	conv1 = tf.contrib.layers.batch_norm(conv1)
 	conv1 = leakyrelu(conv1)
 	conv1 = tf.nn.max_pool(conv1, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
@@ -116,7 +123,7 @@ def recurrent_neural_network(x, current_batch_size):
 	fully_connected_2 = tf.matmul(fully_connected_1, w_fc2) + b_fc2
 
 	return fully_connected_2
-	
+
 
 logits = recurrent_neural_network(x, current_batch_size)
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
