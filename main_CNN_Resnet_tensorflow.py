@@ -86,22 +86,37 @@ def recurrent_neural_network(x):
 
 	rs_block_1 = residual_block(x, 1, 32, 1)
 	rs_block_2 = residual_block(rs_block_1, 32, 32, 2)
+	rs_block_3 = residual_block(rs_block_2, 32, 32, 3)
+	rs_block_3 = tf.nn.max_pool(rs_block_3, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
+	rs_block_4 = residual_block(rs_block_3, 32, 64, 4)
+	rs_block_5 = residual_block(rs_block_4, 64, 64, 5)
+	rs_block_6 = residual_block(rs_block_5, 64, 64, 6)
+	rs_block_6 = tf.nn.max_pool(rs_block_6, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-	# conv5 = tf.nn.max_pool(conv5, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
-	# num_features = 1536
-	# flattened = tf.reshape(conv5, [BATCH_SIZE, num_features])
+	rs_block_7 = residual_block(rs_block_6, 64, 128, 7)
+	rs_block_8 = residual_block(rs_block_7, 128, 128, 8)
+	rs_block_9 = residual_block(rs_block_8, 128, 128, 9)
+	rs_block_9 = tf.nn.max_pool(rs_block_9, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-	# # fully connected layers
-	# w_fc1 = tf.get_variable('w_fc1', shape=[num_features,512], dtype=tf.float32)
-	# w_fc2 = tf.get_variable('w_fc2', shape=[512, NUM_CLASSES], dtype=tf.float32)
-	# b_fc1 = tf.get_variable('b_fc1', shape=[512], dtype=tf.float32)
-	# b_fc2 = tf.get_variable('b_fc2', shape=[NUM_CLASSES], dtype=tf.float32)
+	rs_block_10 = residual_block(rs_block_9, 128, 256, 10)
+	rs_block_11 = residual_block(rs_block_10, 256, 256, 11)
+	rs_block_12 = residual_block(rs_block_11, 256, 256, 12)
+	rs_block_12 = tf.nn.max_pool(rs_block_12, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-	# fully_connected_1 = tf.matmul(flattened, w_fc1) + b_fc1
-	# fully_connected_2 = tf.matmul(fully_connected_1, w_fc2) + b_fc2
+	num_features = 1536
+	flattened = tf.reshape(rs_block_12, [BATCH_SIZE, num_features])
 
-	# return fully_connected_2
+	# fully connected layers
+	w_fc1 = tf.get_variable('w_fc1', shape=[num_features,512], dtype=tf.float32)
+	w_fc2 = tf.get_variable('w_fc2', shape=[512, NUM_CLASSES], dtype=tf.float32)
+	b_fc1 = tf.get_variable('b_fc1', shape=[512], dtype=tf.float32)
+	b_fc2 = tf.get_variable('b_fc2', shape=[NUM_CLASSES], dtype=tf.float32)
+
+	fully_connected_1 = tf.matmul(flattened, w_fc1) + b_fc1
+	fully_connected_2 = tf.matmul(fully_connected_1, w_fc2) + b_fc2
+
+	return fully_connected_2
 
 
 logits = recurrent_neural_network(x)
@@ -142,7 +157,7 @@ with tf.Session() as sess:
 			sum_accuracy_validation += accuracy_validation
 			sum_i += 1
 			print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation, 'sum_i:', sum_i, 'sum_accuracy_validation:', sum_accuracy_validation)
-			training end
+			# training end
 
 		# testing
 		if epoch > 0 and epoch%2 == 0:
