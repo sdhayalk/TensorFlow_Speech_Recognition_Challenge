@@ -15,8 +15,8 @@ def shuffle_randomize(dataset_features, dataset_labels):
 
 def get_batch(dataset, i, BATCH_SIZE):
 	if i*BATCH_SIZE+BATCH_SIZE > dataset.shape[0]:
-		return dataset[i*BATCH_SIZE:, :], dataset.shape[0] - i*BATCH_SIZE
-	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :], BATCH_SIZE
+		return dataset[i*BATCH_SIZE:, :]
+	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :]
 
 
 #DATASET_PATH = 'G:/DL/tf_speech_recognition'
@@ -40,8 +40,8 @@ print('Shuffling training dataset')
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
 
 # divide training set into training and validation
-dataset_validation_features, dataset_validation_labels = dataset_train_features[57000:dataset_train_features.shape[0], :], dataset_train_labels[57000:dataset_train_labels.shape[0], :]
-dataset_train_features, dataset_train_labels = dataset_train_features[0:57000, :], dataset_train_labels[0:57000, :]
+dataset_validation_features, dataset_validation_labels = dataset_train_features[15:dataset_train_features.shape[0], :], dataset_train_labels[15:dataset_train_labels.shape[0], :]
+dataset_train_features, dataset_train_labels = dataset_train_features[0:15, :], dataset_train_labels[0:15, :]
 print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
 
 CLASSES = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
@@ -54,7 +54,6 @@ BATCH_SIZE = 32
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
-current_batch_size = tf.placeholder(tf.int32)
 
 weights = {
 	'w_conv0': tf.get_variable('w_conv0', shape=[3,3,1,32], dtype=tf.float32),
@@ -77,7 +76,7 @@ def leakyrelu(x):
 	return tf.nn.relu(x) - 0.2*tf.nn.relu(-x)
 
 
-def recurrent_neural_network(x, current_batch_size):
+def recurrent_neural_network(x):
 
 	x = tf.reshape(x, [-1, tf.shape(x)[-2], tf.shape(x)[-1], 1])
 	conv0 = tf.nn.conv2d(x, weights['w_conv0'], strides=[1,1,1,1], padding='SAME') + biases['b_conv0']
@@ -110,10 +109,10 @@ def recurrent_neural_network(x, current_batch_size):
 	conv5 = leakyrelu(conv5)
 	conv5 = tf.nn.max_pool(conv5, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
-	flattened = tf.contrib.layers.flatten(conv5)
+	num_features = 1536
+	flattened = tf.reshape(conv5, [BATCH_SIZE, num_features])
 
 	# fully connected layers
-	num_features = tf.shape(flattened)[-1]
 	w_fc1 = tf.get_variable('w_fc1', shape=[num_features,512], dtype=tf.float32)
 	w_fc2 = tf.get_variable('w_fc2', shape=[512, NUM_CLASSES], dtype=tf.float32)
 	b_fc1 = tf.get_variable('b_fc1', shape=[512], dtype=tf.float32)
@@ -125,7 +124,7 @@ def recurrent_neural_network(x, current_batch_size):
 	return fully_connected_2
 
 
-logits = recurrent_neural_network(x, current_batch_size)
+logits = recurrent_neural_network(x)
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
 optimizer = tf.train.AdamOptimizer()
 training = optimizer.minimize(loss)
@@ -138,10 +137,10 @@ with tf.Session() as sess:
 		total_cost = 0
 
 		for i in range(0, int(NUM_EXAMPLES/BATCH_SIZE)):
-			batch_x, batch_current_batch_size = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
-			batch_y, _ = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
+			batch_x = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
+			batch_y = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
-			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y, current_batch_size: batch_current_batch_size})	# train on the given batch size of features and labels
+			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
 			total_cost += batch_cost
 
 		print("Epoch:", epoch, "\tCost:", total_cost)
@@ -150,14 +149,13 @@ with tf.Session() as sess:
 		sum_accuracy_validation = 0.0
 		sum_i = 0
 		for i in range(0, int(dataset_validation_features.shape[0]/BATCH_SIZE)):
-			batch_x, batch_current_batch_size = get_batch(dataset_validation_features, i, BATCH_SIZE)
-			batch_y, _ = get_batch(dataset_validation_labels, i, BATCH_SIZE)
-			# print(batch_current_batch_size)
+			batch_x = get_batch(dataset_validation_features, i, BATCH_SIZE)
+			batch_y = get_batch(dataset_validation_labels, i, BATCH_SIZE)
 
 			y_predicted = tf.nn.softmax(logits)
 			correct = tf.equal(tf.argmax(y_predicted, 1), tf.argmax(y, 1))
 			accuracy_function = tf.reduce_mean(tf.cast(correct, 'float'))
-			accuracy_validation = accuracy_function.eval({x:batch_x, y:batch_y, current_batch_size:batch_current_batch_size})
+			accuracy_validation = accuracy_function.eval({x:batch_x, y:batch_y})
 
 			sum_accuracy_validation += accuracy_validation
 			sum_i += 1
