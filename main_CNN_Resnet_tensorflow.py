@@ -141,6 +141,8 @@ with tf.Session() as sess:
 			batch_x = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
 			batch_y = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
+			batch_x, batch_y = augment_data(batch_x, batch_y, augementation_factor=3)	# augment the data
+
 			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
 			total_cost += batch_cost
 

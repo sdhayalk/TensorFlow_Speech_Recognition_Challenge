@@ -23,7 +23,7 @@ def augment_data(dataset, dataset_labels, augmentation_factor=1, use_random_shif
 				augmented_image_labels.append(dataset_labels[num])
 
 			if use_random_zoom:
-				augmented_image.append(tf.contrib.keras.preprocessing.image.random_zoom(dataset[num], [], row_axis=0, col_axis=1, channel_axis=2))
+				augmented_image.append(tf.contrib.keras.preprocessing.image.random_zoom(dataset[num], [0.2, 0.2], row_axis=0, col_axis=1, channel_axis=2))
 				augmented_image_labels.append(dataset_labels[num])
 
 
