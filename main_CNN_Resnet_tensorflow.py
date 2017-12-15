@@ -72,8 +72,26 @@ biases = {
 	'b_conv5': tf.get_variable('b_conv5', shape=[256], dtype=tf.float32)
 }
 
-def leakyrelu(x):
-	return tf.nn.relu(x) - 0.2*tf.nn.relu(-x)
+def residual_block(x, num_input_filters, num_output_filters, block_num):
+
+	# defining the weights and biases for this residual block
+	w_conv_1 = tf.get_variable('rs_block_'+str(block_num)+'_w_conv1', shape=[3,3,num_input_filters, num_output_filters], dtype=tf.float32)
+	w_conv_2 = tf.get_variable('rs_block_'+str(block_num)+'_w_conv2', shape=[3,3,num_output_filters, num_output_filters], dtype=tf.float32)
+	b_conv_1 = tf.get_variable('rs_block_'+str(block_num)+'_b_conv1', shape=[num_output_filters], dtype=tf.float32)
+	b_conv_2 = tf.get_variable('rs_block_'+str(block_num)+'_b_conv2', shape=[num_output_filters], dtype=tf.float32)
+	
+	# implementing residual block logic
+	input_1 = tf.contrib.layers.batch_norm(x)
+	input_1 = tf.nn.relu(input_1)
+	weight_layer_1 = tf.nn.conv2d(input_1, w_conv_1, strides=[1,1,1,1], padding='SAME') + b_conv_1
+	intermediate = tf.contrib.layers.batch_norm(weight_layer_1)
+	intermediate = tf.nn.relu(intermediate)
+	weight_layer_2 = tf.nn.conv2d(intermediate, w_conv_2, strides=[1,1,1,1], padding='SAME') + b_conv_2
+
+	# elementwise addition of x and weight_layer_2
+	output = tf.add(x, weight_layer_2)
+
+	return output
 
 
 def recurrent_neural_network(x):
