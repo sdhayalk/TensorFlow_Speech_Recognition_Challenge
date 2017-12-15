@@ -2,10 +2,9 @@ import tensorflow as tf
 import numpy as np
 import random
 
-# from tensorflow.python.ops import rnn
-from tensorflow.contrib import rnn
-from keras.layers import merge
 from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_filenames, get_audio_test_dataset_features_labels, normalize_training_dataset, normalize_test_dataset
+from data_augmentation import augment_data
+# from keras.layers import merge
 
 def shuffle_randomize(dataset_features, dataset_labels):
 	dataset_combined = list(zip(dataset_features, dataset_labels))
