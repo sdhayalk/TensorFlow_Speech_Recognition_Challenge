@@ -18,8 +18,8 @@ def get_batch(dataset, i, BATCH_SIZE):
 	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :]
 
 
-DATASET_PATH = 'G:/DL/tf_speech_recognition'
-#DATASET_PATH = '/home/paperspace/tf_speech_recognition'
+#DATASET_PATH = 'G:/DL/tf_speech_recognition'
+DATASET_PATH = '/home/paperspace/tf_speech_recognition'
 ALLOWED_LABELS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 ALLOWED_LABELS_MAP = {}
 for i in range(0, len(ALLOWED_LABELS)):
@@ -40,7 +40,7 @@ print('Shuffling training dataset')
 dataset_train_features, dataset_train_labels = shuffle_randomize(dataset_train_features, dataset_train_labels)
 
 # divide training set into training and validation
-partition_num = 15
+partition_num = 57000
 dataset_validation_features, dataset_validation_labels = dataset_train_features[partition_num:dataset_train_features.shape[0], :], dataset_train_labels[partition_num:dataset_train_labels.shape[0], :]
 dataset_train_features, dataset_train_labels = dataset_train_features[0:partition_num, :], dataset_train_labels[0:partition_num, :]
 print('dataset_validation_features.shape:', dataset_validation_features.shape, 'dataset_validation_labels.shape:', dataset_validation_labels.shape)
@@ -51,7 +51,7 @@ NUM_EXAMPLES = dataset_train_features.shape[0]
 NUM_CHUNKS = dataset_train_features.shape[1]	# 161
 CHUNK_SIZE = dataset_train_features.shape[2]	# 99 
 NUM_EPOCHS = 100
-BATCH_SIZE = 8
+BATCH_SIZE = 32
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE, 1])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
@@ -136,7 +136,7 @@ with tf.Session() as sess:
 			batch_x = get_batch(dataset_train_features, i, BATCH_SIZE)	# get batch of features of size BATCH_SIZE
 			batch_y = get_batch(dataset_train_labels, i, BATCH_SIZE)	# get batch of labels of size BATCH_SIZE
 
-			batch_x, batch_y = augment_data(batch_x, batch_y, augmentation_factor=3)	# augment the data
+			batch_x, batch_y = augment_data(batch_x, batch_y, augmentation_factor=2)	# augment the data
 
 			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
 			total_cost += batch_cost
