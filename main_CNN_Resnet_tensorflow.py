@@ -18,8 +18,8 @@ def get_batch(dataset, i, BATCH_SIZE):
 	return dataset[i*BATCH_SIZE:(i*BATCH_SIZE+BATCH_SIZE), :]
 
 
-#DATASET_PATH = 'G:/DL/tf_speech_recognition'
-DATASET_PATH = '/home/paperspace/tf_speech_recognition'
+#DATASET_PATH = 'G:/DL/tf_speech_recognition/data'
+DATASET_PATH = '/home/paperspace/tf_speech_recognition/data'
 ALLOWED_LABELS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 ALLOWED_LABELS_MAP = {}
 for i in range(0, len(ALLOWED_LABELS)):
@@ -51,7 +51,7 @@ NUM_EXAMPLES = dataset_train_features.shape[0]
 NUM_CHUNKS = dataset_train_features.shape[1]	# 161
 CHUNK_SIZE = dataset_train_features.shape[2]	# 99 
 NUM_EPOCHS = 100
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 
 x = tf.placeholder(tf.float32, shape=[None, NUM_CHUNKS, CHUNK_SIZE, 1])
 y = tf.placeholder(tf.float32, shape=[None, NUM_CLASSES])
@@ -106,7 +106,7 @@ def recurrent_neural_network(x):
 	rs_block_12 = tf.nn.max_pool(rs_block_12, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
 
 	num_features = 19712
-	flattened = tf.reshape(rs_block_12, [BATCH_SIZE, num_features])
+	flattened = tf.reshape(rs_block_12, [-1, num_features])
 
 	# fully connected layers
 	w_fc1 = tf.get_variable('w_fc1', shape=[num_features,512], dtype=tf.float32)
