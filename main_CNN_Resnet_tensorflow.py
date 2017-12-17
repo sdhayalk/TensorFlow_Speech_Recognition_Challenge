@@ -143,7 +143,8 @@ with tf.Session() as sess:
 
 			_, batch_cost = sess.run([training, loss], feed_dict={x: batch_x, y: batch_y})	# train on the given batch size of features and labels
 			total_cost += batch_cost
-			print(i)
+			if i % 25 == 0:
+				print(i)
 
 		print("Epoch:", epoch, "\tCost:", total_cost)
 
@@ -178,7 +179,7 @@ with tf.Session() as sess:
 
 				if len(audio_files_list) == 3200:
 					dataset_test_features = np.array(dataset_test_features)
-					dataset_test_features = dataset_test_features.reshape((dataset_test_features[0], dataset_test_features[1], dataset_test_features[2], 1))
+					dataset_test_features = dataset_test_features.reshape((dataset_test_features.shape[0], dataset_test_features,shape[1], dataset_test_features.shape[2], 1))
 					dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
 
 					for i in range(0, int(dataset_test_features.shape[0]/BATCH_SIZE)):
@@ -203,6 +204,7 @@ with tf.Session() as sess:
 
 			# last set
 			dataset_test_features = np.array(dataset_test_features)
+			dataset_test_features = dataset_test_features.reshape((dataset_test_features.shape[0], dataset_test_features,shape[1], dataset_test_features.shape[2], 1))
 			dataset_test_features = normalize_test_dataset(dataset_test_features, min_value, max_value)
 
 			for i in range(0, int(dataset_test_features.shape[0]/BATCH_SIZE)):
@@ -211,12 +213,12 @@ with tf.Session() as sess:
 				for element in temp:
 					y_predicted_labels.append(element) 
 
-			test_samples_picked += 3200
+			test_samples_picked += 6400
 			print('test_samples_picked:', test_samples_picked)
 
 			# writing predicted labels into a csv file
 			# y_predicted_labels = np.array(y_predicted_labels)
-			with open('/output/run'+str(epoch)+'.csv','a') as file:	
+			with open('run'+str(epoch)+'.csv','a') as file:	
 				for i in range(0, len(y_predicted_labels)):
 					file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
 					file.write('\n')
