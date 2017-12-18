@@ -4,7 +4,6 @@ import random
 
 from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_filenames, get_audio_test_dataset_features_labels, normalize_training_dataset, normalize_test_dataset
 from data_augmentation import augment_data
-# from keras.layers import merge
 
 # floyd run --gpu --env tensorflow --data sahilcrslab/datasets/tf_speech_recog/3 'python main_CNN_Resnet_tensorflow.py'
 
@@ -21,8 +20,8 @@ def get_batch(dataset, i, BATCH_SIZE):
 
 
 #DATASET_PATH = 'G:/DL/tf_speech_recognition/data'
-#DATASET_PATH = '/home/paperspace/tf_speech_recognition/data'
-DATASET_PATH = '/input'
+DATASET_PATH = '/home/paperspace/tf_speech_recognition/data'
+#DATASET_PATH = '/input'
 ALLOWED_LABELS = ['yes', 'no', 'up', 'down', 'left', 'right', 'on', 'off', 'stop', 'go', 'silence', 'unknown']
 ALLOWED_LABELS_MAP = {}
 for i in range(0, len(ALLOWED_LABELS)):
@@ -192,7 +191,6 @@ with tf.Session() as sess:
 					print('test_samples_picked:', test_samples_picked)
 
 					# writing predicted labels into a csv file
-					# y_predicted_labels = np.array(y_predicted_labels)
 					with open('run'+str(epoch)+'.csv','a') as file:	
 						for i in range(0, len(y_predicted_labels)):
 							file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
@@ -217,11 +215,7 @@ with tf.Session() as sess:
 			print('test_samples_picked:', test_samples_picked)
 
 			# writing predicted labels into a csv file
-			# y_predicted_labels = np.array(y_predicted_labels)
 			with open('run'+str(epoch)+'.csv','a') as file:	
 				for i in range(0, len(y_predicted_labels)):
 					file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
 					file.write('\n')
-
-
-		
