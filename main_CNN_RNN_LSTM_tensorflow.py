@@ -2,7 +2,6 @@ import tensorflow as tf
 import numpy as np
 import random
 
-# from tensorflow.python.ops import rnn
 from tensorflow.contrib import rnn
 from keras.layers import merge
 from data_preprocessing import get_audio_dataset_features_labels, get_audio_test_dataset_filenames, get_audio_test_dataset_features_labels, normalize_training_dataset, normalize_test_dataset
@@ -196,7 +195,7 @@ with tf.Session() as sess:
 			sum_accuracy_validation += accuracy_validation
 			sum_i += 1
 			print("Validation Accuracy in Epoch ", epoch, ":", accuracy_validation, 'sum_i:', sum_i, 'sum_accuracy_validation:', sum_accuracy_validation)
-			# training end
+		# training end
 
 		# testing
 		if epoch > 0 and epoch%2 == 0:
@@ -224,7 +223,6 @@ with tf.Session() as sess:
 					print('test_samples_picked:', test_samples_picked)
 
 					# writing predicted labels into a csv file
-					# y_predicted_labels = np.array(y_predicted_labels)
 					with open('run'+str(epoch)+'.csv','a') as file:	
 						for i in range(0, len(y_predicted_labels)):
 							file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))
@@ -248,7 +246,6 @@ with tf.Session() as sess:
 			print('test_samples_picked:', test_samples_picked)
 
 			# writing predicted labels into a csv file
-			# y_predicted_labels = np.array(y_predicted_labels)
 			with open('run'+str(epoch)+'.csv','a') as file:	
 				for i in range(0, len(y_predicted_labels)):
 					file.write(str(audio_files_list[i]) + ',' + str(ALLOWED_LABELS_MAP[str(int(y_predicted_labels[i]))]))

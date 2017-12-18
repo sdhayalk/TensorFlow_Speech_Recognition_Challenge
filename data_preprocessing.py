@@ -1,16 +1,14 @@
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 
 from scipy import signal
 from scipy.io import wavfile
-import statistics
-
 
 def get_silence_average(path):
 	path = path + os.sep + 'silence' + os.sep + '3e7124ba_nohash_0.wav'
 	samplerate, test_sound  = wavfile.read(path)
 	print(test_sound)
+
 
 # referred from: https://www.kaggle.com/davids1992/data-visualization-and-investigation
 def log_specgram(audio, sample_rate, window_size=20, step_size=10, eps=1e-10):
@@ -25,6 +23,7 @@ def log_specgram(audio, sample_rate, window_size=20, step_size=10, eps=1e-10):
                                     detrend=False)
 
     return freqs, np.log(spec.T.astype(np.float32) + eps)
+
 
 def get_audio_dataset_features_labels(path, allowed_labels, type='train'):
 	TYPES = ['train', 'test', 'both']
@@ -44,7 +43,6 @@ def get_audio_dataset_features_labels(path, allowed_labels, type='train'):
 	for allowed_label in ALLOWED_LABELS:
 		one_hot_map[allowed_label] = label_index
 		label_index += 1
-
 
 	if type == 'train':
 		folders_list = os.listdir(TRAIN_PATH)
@@ -82,6 +80,7 @@ def get_audio_dataset_features_labels(path, allowed_labels, type='train'):
 				#break
 	return np.array(dataset_features, dtype='float'), np.array(dataset_labels, dtype='float'), one_hot_map
 
+
 def get_audio_test_dataset_filenames(path):
 	TEST_PATH = path + os.sep + 'test' + os.sep + 'audio'
 	dataset_filenames = []
@@ -93,9 +92,9 @@ def get_audio_test_dataset_filenames(path):
 	dataset_filenames.sort()
 	return dataset_filenames
 
+
 def get_audio_test_dataset_features_labels(path, audio_file):
 	TEST_PATH = path + os.sep + 'test' + os.sep + 'audio'
-	SILENCE_AVERAGE = 0
 
 	audio_file_path = TEST_PATH + os.sep + audio_file
 	samplerate, test_sound  = wavfile.read(audio_file_path)
@@ -107,9 +106,10 @@ def get_audio_test_dataset_features_labels(path, audio_file):
 			diff -= 1
 
 	_, spectrogram = log_specgram(test_sound, samplerate)
+	
 	return spectrogram.T
-
 	#return np.array(dataset_features, dtype='float')
+
 
 def normalize_training_dataset(dataset_train_features):
 	min_value = np.amin(dataset_train_features)
@@ -117,6 +117,7 @@ def normalize_training_dataset(dataset_train_features):
 
 	dataset_train_features = (dataset_train_features - min_value) / (max_value - min_value)
 	return dataset_train_features, min_value, max_value
+
 
 def normalize_test_dataset(datast_test_features, min_value, max_value):
 	datast_test_features = (datast_test_features - min_value) / (max_value - min_value)

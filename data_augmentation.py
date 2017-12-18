@@ -7,6 +7,7 @@ references from:
 import tensorflow as tf
 import numpy as np
 
+
 def augment_data(dataset, dataset_labels, augmentation_factor=1, use_random_shift=True, use_random_zoom=True):
 	augmented_image = []
 	augmented_image_labels = []
