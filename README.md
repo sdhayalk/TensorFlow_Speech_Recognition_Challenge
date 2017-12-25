@@ -17,5 +17,7 @@ I implemented 3 neural network architectures:
 Using the above, I compared their performance to detect 12 speech commands. The audio data is preprocessed to generate Spectogram images, followed by data augmentation and normalization. Achieved test accuracy of 74%, 76% and 71% in those 3 architectures respectively.
 
 RNN: Recurrent Neural Network
+
 LSTM: Long Short Term Memory
+
 CNN: Convolutional Neural Network
